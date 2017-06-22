@@ -1,9 +1,4 @@
 '''
-Created on Jun 22, 2017
-
-@author: agutierrez
-'''
-'''
 MADMex root package.
 '''
 from __future__ import unicode_literals
@@ -23,10 +18,6 @@ os.environ['LANGUAGE'] = 'en_US'
 LOCALE_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     'locale')
-
-LANGUAGE = gettext.translation('madmex', LOCALE_PATH)
-LANGUAGE.install()
-_ = LANGUAGE.ugettext
 
 LOGGER = logging.getLogger(__name__)
 

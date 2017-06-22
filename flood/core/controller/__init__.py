@@ -11,13 +11,12 @@ import os
 import pkgutil
 import sys
 
-from flood import _
 from flood import find_in_dir, load_class
 import flood
 from flood.core.controller.base import BaseCommand, CommandError
 
 
-COMMANDS_PACKAGE = 'madmex.core.controller.commands'
+COMMANDS_PACKAGE = 'flood.core.controller.commands'
 
 LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +85,7 @@ def flood_copyright():
     Copyright legend for the MADMex system.
     '''
     LOGGER.info("Printing out the copyright.")
-    return _('MADMex 2009-%s') % date.today().year
+    return 'MADMex 2009-%s' % date.today().year
 
 def execute(argv=None):
     '''
