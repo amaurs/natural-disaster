@@ -35,10 +35,12 @@ class Command(BaseCommand):
         In this example command, the values that come from the user input are
         added up and the result is printed in the screen.
         '''
-        file = options['file']
-        LOGGER.info('Ingesting file %s: ' % file)
-        my_scene = scene.Data(file, 2014, 'https://coast.noaa.gov/htdata/raster1/imagery/Sandy_2014_4885/2014_730800e_4531800n_orthomosaic.tif')
-        
-        persist_data(my_scene)
-            
-        
+        images_file = options['file']
+        print images_file
+        with open(images_file) as urls:
+            content = urls.readlines()
+            for url in content:
+                LOGGER.info('Ingesting %s ' % url)
+                my_scene = scene.Data(2014, url.strip())
+                print my_scene.image_path
+                persist_data(my_scene)
