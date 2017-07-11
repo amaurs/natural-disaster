@@ -46,11 +46,13 @@ class Sample(BASE):
     '''
     __tablename__ = 'sample'
     pk_id = Column(Integer, primary_key=True)
+    name = Column(String)
+    static_url = Column(String)
     x = Column(Integer)
     y = Column(Integer)
     width = Column(Integer)
     height = Column(Integer)
-    water = Column(Boolean)
+    water = Column(Integer)
     scene_id = Column(Integer, ForeignKey('scene.pk_id'))
     scene = relationship('Scene')
 

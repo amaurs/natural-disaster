@@ -65,13 +65,39 @@ def persist_data(bundle, keep=False):
         raise
     finally:
         session.close()
-        
-    
-if __name__ == '__main__':
-    #images_paths = acquisitions_by_mapgrid_and_date('2013-12-31', 15462121, 100)
-    #print images_paths
-    #print len(images_paths)
-    from datetime import datetime
-    start_date = datetime.strptime('2015-01-01', "%Y-%m-%d")
-    end_date = datetime.strptime( '2015-12-31', "%Y-%m-%d")
+
+def ingest_sample(sample):
+    session = SESSION_MAKER()
+    my_action = database.InsertAction(
+                                      sample.get_database_object(),
+                                      session)
+    my_action.act()
+
+def update_sample(name, value):
+    session = SESSION_MAKER()
+    query = "UPDATE sample SET water = %s WHERE sample.name = '%s';" % (value, name)
+    print query
+    try:
+        result = session.execute(query)
+        session.commit()
+    except Exception:
+        LOGGER.error('Not expected error in host insertion.')
+        raise
+    finally:
+        session.close()
+    return result
+
+def get_random_scene():
+    session = SESSION_MAKER()
+    query = 'SELECT * FROM scene ORDER BY RANDOM() LIMIT 1'
+    try:
+        result = session.execute(query)
+    except Exception:
+        LOGGER.error('Not expected error in host insertion.')
+        raise
+    finally:
+        session.close()
+    return result
+      
+
 
