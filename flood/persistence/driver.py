@@ -98,6 +98,18 @@ def get_random_scene():
     finally:
         session.close()
     return result
-      
+
+def get_scene_paths(water, limit=100):
+    session = SESSION_MAKER()
+    query = 'SELECT * FROM sample WHERE water=%s LIMIT %s;' % (water, limit)
+    try:
+        result = session.execute(query)
+    except Exception:
+        LOGGER.error('Not expected error in host insertion.')
+        raise
+    finally:
+        session.close()
+    return result
+
 
 
