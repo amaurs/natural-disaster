@@ -52,8 +52,8 @@ class Command(BaseCommand):
         image = Image(name=new_name,
                       date=date_string,
                       checked=False,
-                      town=town)
-        
+                      town=town,
+                      url='images/%s' % new_name) 
         image.save()
         
 

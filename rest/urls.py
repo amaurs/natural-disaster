@@ -21,6 +21,7 @@ from rest.disasters import views
 
 router = routers.DefaultRouter()
 router.register(r'images', views.ImageViewSet, 'Image')
+router.register(r'samples', views.SampleViewSet, 'Sample')
 
 urlpatterns = [
     url(r'^', include(router.urls)),

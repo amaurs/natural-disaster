@@ -15,13 +15,14 @@ class Image(models.Model):
     name = models.CharField(max_length=50)
     date = models.DateTimeField()
     checked = models.BooleanField()
-    town = models.ForeignKey(Town, related_name='image')
+    url = models.CharField(max_length=50,default=None)
+    town = models.ForeignKey(Town, related_name='town')
     models.CharField(max_length=50)
 
 class Sample(models.Model):
     name = models.CharField(max_length=50)
     url = models.CharField(max_length=50)
-    image = models.ForeignKey(Image, related_name='features')
+    image = models.ForeignKey(Image, related_name='image')
     width = models.IntegerField()
     height = models.IntegerField()
     x = models.IntegerField()
