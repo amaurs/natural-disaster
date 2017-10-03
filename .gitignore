@@ -4,3 +4,8 @@
 .settings/**
 .metadata
 rest/.env
+
+*.log
+.static_storage/
+.media/
+local_settings.py
