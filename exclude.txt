@@ -1,0 +1,6 @@
+deploy.sh
+exclude.txt
+.git
+.DS_Store
+rest/.env
+rest/settings.py

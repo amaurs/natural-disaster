@@ -2,6 +2,8 @@ affine==2.0.0.post1
 click==6.7
 click-plugins==1.0.3
 cligj==0.4.0
+Django==1.11.5
+djangorestframework==3.6.4
 enum34==1.1.6
 Flask==0.12.2
 Flask-Cors==3.0.3
@@ -14,6 +16,8 @@ olefile==0.44
 Pillow==4.1.1
 psycopg2==2.7.1
 pyparsing==2.2.0
+python-dotenv==0.7.1
+pytz==2017.2
 rasterio==0.36.0
 six==1.10.0
 snuggs==1.4.1
