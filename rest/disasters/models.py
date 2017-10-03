@@ -14,6 +14,8 @@ class Label(models.Model):
 class Image(models.Model):
     name = models.CharField(max_length=50)
     date = models.DateTimeField()
+    original_name = models.CharField(max_length=50,default=None)
+    gps = models.CharField(max_length=200)
     checked = models.BooleanField()
     url = models.CharField(max_length=50,default=None)
     town = models.ForeignKey(Town, related_name='town')

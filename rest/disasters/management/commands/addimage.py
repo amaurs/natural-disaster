@@ -3,6 +3,7 @@ Created on Oct 2, 2017
 
 @author: agutierrez
 '''
+import json
 from uuid import uuid4
 import uuid
 
@@ -13,6 +14,7 @@ from django.core.management.base import BaseCommand
 from rest.disasters import models
 from rest.disasters.models import Image, Town
 from rest.settings import IMAGE_FOLDER
+from flood.util import get_base_name
 
 
 class Command(BaseCommand):
@@ -36,6 +38,7 @@ class Command(BaseCommand):
         for (k,v) in image_mem._getexif().iteritems():
             metadata[TAGS.get(k)] = v
             
+        
         date_time =  metadata['DateTime'].split(' ')
         
         date_time[0] = date_time[0].replace(':','-')
@@ -53,7 +56,9 @@ class Command(BaseCommand):
                       date=date_string,
                       checked=False,
                       town=town,
-                      url='images/%s' % new_name) 
+                      url='images/%s' % new_name,
+                      gps=json.dumps(metadata['GPSInfo']),
+                      original_name=get_base_name(filename)) 
         image.save()
         
 
