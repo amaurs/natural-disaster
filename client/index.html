@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Static Image</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.3.4/css/ol.css" type="text/css">
+    <script src="https://openlayers.org/en/v4.3.4/build/ol.js"></script>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <script>
+      // Map views always need a projection.  Here we just want to map image
+      // coordinates directly to map coordinates, so we create a projection that uses
+      // the image extent in pixels.
+      var extent = [0, 0, 1024, 968];
+      var projection = new ol.proj.Projection({
+        code: 'xkcd-image',
+        units: 'pixels',
+        extent: extent
+      });
+
+      var map = new ol.Map({
+        layers: [
+          new ol.layer.Image({
+            source: new ol.source.ImageStatic({
+              url: 'https://amaurs.com/disasters/images/ba25744b-90fd-4199-989f-e49475834db6.jpg',
+              projection: projection,
+              imageExtent: extent
+            })
+          })
+        ],
+        target: 'map',
+        view: new ol.View({
+          projection: projection,
+          center: ol.extent.getCenter(extent),
+          zoom: 2,
+          maxZoom: 8
+        })
+      });
+    </script>
+  </body>
+</html>
