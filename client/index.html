@@ -1,41 +1,223 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Static Image</title>
+    <title>Natural Disaster</title>
+    
+    <link rel="stylesheet" type="text/css" href="style/style.css">
     <link rel="stylesheet" href="https://openlayers.org/en/v4.3.4/css/ol.css" type="text/css">
     <script src="https://openlayers.org/en/v4.3.4/build/ol.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   </head>
   <body>
-    <div id="map" class="map"></div>
+    <div id="container">
+        <div id="credentials">
+            Username: <input type="text" id="user">Password: <input type="password" id="password">
+        </div>
+        <div id="map" class="map"></div>
+        <div id="controls">
+            <button id="prev" class="button">Prev</button>
+            <button id="submit" class="button">Submit</button>
+            <select id="label" class="button">
+                <option value="1">Severo</option>
+                <option value="2">Medio</option>
+                <option value="3">Bajo</option>
+                <option value="4">Ausente</option>
+            </select>
+            <button id="next" class="button">Next</button>
+        </div>
+    </div>
     <script>
-      // Map views always need a projection.  Here we just want to map image
-      // coordinates directly to map coordinates, so we create a projection that uses
-      // the image extent in pixels.
-      var extent = [0, 0, 1024, 968];
-      var projection = new ol.proj.Projection({
-        code: 'xkcd-image',
-        units: 'pixels',
-        extent: extent
-      });
+        var width = 4000;
+        var height = 3000;
+        var featureWidth = featureHeight = 322;
+        var extent = [0, 0, width, height];
+        var source = new ol.source.Vector({wrapX: false});
+        var projection = new ol.proj.Projection({
+          code: 'photo-image',
+          units: 'pixels',
+          extent: extent
+        });
+  
+        var raster = new ol.layer.Image({
+              source: new ol.source.ImageStatic({
+                url: 'https://amaurs.com/disasters/images/ba25744b-90fd-4199-989f-e49475834db6.jpg',
+                projection: projection,
+                imageExtent: extent
+              })
+            });
+  
+        
+        var polygonFeature = new ol.Feature(
+            new ol.geom.Polygon([[[(width - featureWidth) / 2, (height - featureHeight) / 2], 
+                                  [(width + featureWidth) / 2, (height - featureHeight) / 2],
+                                  [(width + featureWidth) / 2, (height + featureHeight) / 2], 
+                                  [(width - featureWidth) / 2, (height + featureHeight) / 2], 
+                                  [(width - featureWidth) / 2, (height - featureHeight) / 2]]]));
+  
+        var vectorSource = new ol.source.Vector({features: [polygonFeature]});
+        var vector = new ol.layer.Vector({
+            source: vectorSource
+        });
+  
+  
+        var select = new ol.interaction.Select();
+  
+        var translate = new ol.interaction.Translate({
+          features: select.getFeatures()
+        });
 
-      var map = new ol.Map({
-        layers: [
-          new ol.layer.Image({
-            source: new ol.source.ImageStatic({
-              url: 'https://amaurs.com/disasters/images/ba25744b-90fd-4199-989f-e49475834db6.jpg',
+        translate.on("translateend", function(event){
+            var extent = polygonFeature.getGeometry().getExtent();
+            var x = Math.round(extent[0]);
+            var y = Math.round(height - (featureHeight + extent[1]));
+            var w = featureWidth;
+            var h = featureHeight;
+            console.log("("+x+","+y+","+w+","+h+")");
+            if(x < 0 || x + w >= width || y < 0 || y + h >= height) {
+                $("#submit").prop('disabled', true);
+            } else {
+                $("#submit").prop('disabled', false);
+            }
+        });
+        var map = new ol.Map({
+            layers: [raster, vector],
+            target: 'map',
+            view: new ol.View({
               projection: projection,
-              imageExtent: extent
-            })
-          })
-        ],
-        target: 'map',
-        view: new ol.View({
-          projection: projection,
-          center: ol.extent.getCenter(extent),
-          zoom: 2,
-          maxZoom: 8
-        })
+              center: ol.extent.getCenter(extent),
+              zoom: 2,
+              maxZoom: 8
+            }),
+            interactions: ol.interaction.defaults().extend([select, translate])
+        });
+
+        var global = {};
+
+    function make_base_auth(user, password) {
+        var tok = user + ':' + password;
+        console.log(tok);
+        var hash = btoa(tok);
+        return 'Basic ' + hash;
+    }
+
+    function getSource(newUrl) {
+        var finalUrl = "https://amaurs.com/disasters/" + newUrl;
+        newSource = new ol.source.ImageStatic({
+                            url: finalUrl,
+                            projection: projection,
+                            imageExtent: extent
+                        });
+        return newSource;
+    }
+
+    function loadNewImage() {
+        source = getSource(global.currentData['results'][global.index]['url']);
+        layer = map.getLayers().getArray()[0];
+        layer.setSource(source);
+    }
+
+    function makeAjaxCall(urlCall) {
+        $.ajax({
+            type: 'GET',
+            url: urlCall, 
+            success: function(result){
+                global.currentData = result;
+
+            },
+            beforeSend : function(req) {
+                req.setRequestHeader('Authorization', make_base_auth($("#user").val(), $("#password").val()));
+            },
+        });
+    }
+    function uuidv4() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
       });
+    }
+
+    $(document).ready(function(){
+        
+        var searchParams = new URLSearchParams(window.location.search);
+        var data;
+
+        console.log(global.user + ":" + global.password);
+        
+        makeAjaxCall("http://45.33.126.223:9090/images/");
+        global.index = 0;
+
+        $("#next").click(function(){
+            if (global.currentData) {
+                var size = global.currentData['results'].length;
+                if(global.index + 1 < size){
+                    global.index = global.index + 1;
+                } else if(global.currentData['next'] != null){
+                    makeAjaxCall(global.currentData['next']);
+                    global.index = 0;
+                } else {
+                    console.log("Last page.");
+                }
+                loadNewImage();
+            } else {
+                makeAjaxCall("http://45.33.126.223:9090/images/");
+            }
+        });
+
+        $("#prev").click(function(){
+            if (global.currentData) {
+                var size = global.currentData['results'].length;
+                if(global.index - 1 >= 0){
+                    global.index = global.index - 1;
+                    loadNewImage();
+                } else if(global.currentData['previous'] != null){
+
+                    makeAjaxCall(global.currentData['previous']);
+                    global.index = global.currentData['results'].length - 1;
+                } else {
+                    console.log("First page.");
+                }
+            } else {
+                makeAjaxCall("http://45.33.126.223:9090/images/");
+            }
+        });
+        $("#submit").click(function(){
+            if (global.currentData) {
+                var extent = polygonFeature.getGeometry().getExtent();
+                var x = Math.round(extent[0]);
+                var y = Math.round(height - (featureHeight + extent[1]));
+                var w = featureWidth;
+                var h = featureHeight;
+                var uuid = uuidv4();
+                
+                $.ajax({
+                    url: "http://45.33.126.223:9090/samples/",
+                    type: "POST",
+                    data: JSON.stringify({
+                        "name": uuid + ".jpg",
+                        "url": "thumb/" + uuid + ".jpg",
+                        "image": {
+                            "url": global.currentData['results'][global.index]['url']
+                        },
+                        "height": h,
+                        "width": w,
+                        "y": y,
+                        "x": x,
+                        "label": {
+                            "name": $("#label :selected").text()
+                        }
+                    }),
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        window.alert("Upload was successful.");
+                    },
+                    beforeSend : function(req) {
+                        req.setRequestHeader('Authorization', make_base_auth($("#user").val(), $("#password").val()));
+                    }
+                });
+            }
+        });
+    });
     </script>
   </body>
 </html>
