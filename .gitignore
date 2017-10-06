@@ -13,3 +13,5 @@ deploy.sh
 exclude.txt
 client/deploy.sh
 client/exclude.txt
+
+static/**

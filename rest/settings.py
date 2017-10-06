@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG',True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost"]
 
 
 # Application definition
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -60,11 +61,11 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (
-    'localhost:9090',
+    'localhost:8000',
     'localhost',
 )
 CORS_ORIGIN_REGEX_WHITELIST = (
-    'localhost:9090',
+    'localhost:8000',
     'localhost',
 )
 
@@ -156,3 +157,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 IMAGE_FOLDER = os.environ.get('IMAGE_FOLDER')
+
+THUMB_FOLDER = os.environ.get('THUMB_FOLDER')

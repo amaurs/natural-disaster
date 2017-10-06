@@ -48,7 +48,8 @@ class Command(BaseCommand):
         print date_string
         image_mem.copy()
         new_name = '%s.jpg' % uuid.uuid4()
-        new_path = '%s/%s' % (IMAGE_FOLDER,new_name)
+        new_path = '%s/%s' % (IMAGE_FOLDER, new_name)
+        print new_path
         image_mem.save(new_path)
         
         town = Town.objects.get(name=town_name)
