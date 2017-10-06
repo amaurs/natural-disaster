@@ -159,3 +159,8 @@ STATIC_URL = '/static/'
 IMAGE_FOLDER = os.environ.get('IMAGE_FOLDER')
 
 THUMB_FOLDER = os.environ.get('THUMB_FOLDER')
+
+AUGMENT_FOLDER = os.environ.get('AUGMENT_FOLDER')
+
+TARGET_WIDTH = 227
+TARGET_HEIGHT = 227
