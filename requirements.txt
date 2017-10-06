@@ -4,6 +4,7 @@ click-plugins==1.0.3
 cligj==0.4.0
 Django==1.11.5
 djangorestframework==3.6.4
+django-cors-headers==2.1.0
 enum34==1.1.6
 Flask==0.12.2
 Flask-Cors==3.0.3

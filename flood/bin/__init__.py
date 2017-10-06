@@ -1,4 +1,0 @@
-'''
-flood.bin
-Bin package.
-'''

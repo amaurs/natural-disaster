@@ -8,5 +8,8 @@ rest/.env
 *.log
 .static_storage/
 .media/
-local_settings.pydeploy.sh
+local_settings.py
+deploy.sh
 exclude.txt
+client/deploy.sh
+client/exclude.txt
