@@ -4,6 +4,7 @@ Created on Oct 5, 2017
 @author: agutierrez
 '''
 
+import os
 import random
 import sys
 import uuid
@@ -49,11 +50,19 @@ class Command(BaseCommand):
         
         if label_name == 'damage':
             query_group = Q(label=low) | Q(label=medium) | Q(label=severe)
+            
         elif label_name == 'nodamage':
             query_group = Q(label=absent)
         else:
             print 'Label should be damage or nodamage.'
             sys.exit(-1)
+            
+        directory = '%s/%s' % (AUGMENT_FOLDER, label_name)
+        print directory
+        if not os.path.exists(directory):
+            os.makedirs(directory) 
+        else:
+            print 'Path exists.'                   
                                               
         samples = Sample.objects.all().filter(query_group)
         
@@ -63,6 +72,6 @@ class Command(BaseCommand):
             new_path = '%s/%s' % (THUMB_FOLDER, sample.name)
             for i in range(10):
                 new_name = '%s.jpg' % uuid.uuid4()
-                target_path = '%s/%s' % (AUGMENT_FOLDER, new_name)
+                target_path = '%s/%s' % (directory, new_name)
                 create_random_transformation(new_path, target_path)
         
