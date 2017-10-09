@@ -12,11 +12,13 @@
     <div id="container">
         <div id="credentials">
             Username: <input type="text" id="user">Password: <input type="password" id="password">
+            Prediction: <span id="prediction"></span>
         </div>
         <div id="map" class="map"></div>
         <div id="controls">
             <button id="prev" class="button">Prev</button>
             <button id="submit" class="button">Submit</button>
+            <button id="predict" class="button">Predict</button>
             <select id="label" class="button">
                 <option value="1">Severo</option>
                 <option value="2">Medio</option>
@@ -210,6 +212,36 @@
                     contentType: "application/json",
                     success: function (data) {
                         window.alert("Upload was successful.");
+                    },
+                    beforeSend : function(req) {
+                        req.setRequestHeader('Authorization', make_base_auth($("#user").val(), $("#password").val()));
+                    }
+                });
+            }
+        });
+        $("#predict").click(function(){
+            if (global.currentData) {
+                var extent = polygonFeature.getGeometry().getExtent();
+                var x = Math.round(extent[0]);
+                var y = Math.round(height - (featureHeight + extent[1]));
+                var w = featureWidth;
+                var h = featureHeight;
+                var uuid = uuidv4();
+                
+                $.ajax({
+                    url: "http://localhost:8000/images/"+global.currentData['results'][global.index]['pk']+"/"+x+"/"+y+"/"+h+"/"+w,
+                    type: "GET",
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        console.log(data);
+                        //window.alert("damage: " + data['damage'] + "\nno damage:" + data['nodamage']);
+                        if(data['damage'] > .5){
+                            $("#prediction").text("Daño")
+                        } else {
+                            $("#prediction").text("No Daño")
+                        }
+                        
                     },
                     beforeSend : function(req) {
                         req.setRequestHeader('Authorization', make_base_auth($("#user").val(), $("#password").val()));
