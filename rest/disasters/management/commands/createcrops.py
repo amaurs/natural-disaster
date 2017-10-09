@@ -70,7 +70,7 @@ class Command(BaseCommand):
         
         for sample in samples:
             new_path = '%s/%s' % (THUMB_FOLDER, sample.name)
-            for i in range(10):
+            for i in range(1):
                 new_name = '%s.jpg' % uuid.uuid4()
                 target_path = '%s/%s' % (directory, new_name)
                 create_random_transformation(new_path, target_path)

@@ -10,6 +10,7 @@ from rest_framework import serializers
 
 from rest.disasters.models import Image, Sample, Label, Town
 from rest.settings import IMAGE_FOLDER, THUMB_FOLDER
+from rest_framework.serializers import BaseSerializer
 
 
 class TownSerializer(serializers.HyperlinkedModelSerializer):
@@ -23,9 +24,17 @@ class LabelSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('name',)
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
+
+
+
+
+    def get_value(self, dictionary):
+        print 'Inside get value'
+        return serializers.HyperlinkedModelSerializer.get_value(self, dictionary)
+
     class Meta:
         model = Image
-        fields = ('url',)
+        fields = ('pk','url',)
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
     image = ImageSerializer()
     label = LabelSerializer()
