@@ -11,16 +11,17 @@
     <title>Natural Disaster</title>
   </head>
   <body>
-    <nav class="navbar navbar-default">
+    <nav class="navbar navbar">
       <div class="container-fluid">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">WebSiteName</a>
+          <a class="navbar-brand" href="#">Disaster Assessment</a>
         </div>
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">Home</a></li>
-          <li><a href="#">Page 1</a></li>
-          <li><a href="#">Page 2</a></li>
-          <li><a href="#">Page 3</a></li>
+          <li><a href="#">Previous</a></li>
+          <li><a href="#">Next</a></li>
+          <li><a href="#">Submit</a></li>
+          <li><a href="#">Predict</a></li>
         </ul>
       </div>
     </nav>
@@ -29,17 +30,17 @@
           <div class="col-md-12 " id="controlsBar">
             <div id="extentList" class="list-group">
               <div id="controls">
-                <button id="prev" class="button">Prev</button>
-                <button id="submit" class="button">Submit</button>
-                <button id="predict" class="button">Predict</button>
-                <select id="label" class="button">
+                <button id="prev" class="btn">Prev</button>
+                <button id="submit" class="btn">Submit</button>
+                <button id="predict" class="btn">Predict</button>
+                <select id="label" class="form-group">
                     <option value="1">Severo</option>
                     <option value="2">Medio</option>
                     <option value="3">Bajo</option>
                     <option value="4">Ausente</option>
                 </select>
                 
-                <button id="next" class="button">Next</button>
+                <button id="next" class="btn">Next</button>
                 <p>Prediction:<span id="prediction"></span></p>
               </div>
             </div>
