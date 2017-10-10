@@ -24,17 +24,10 @@ class LabelSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('name',)
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
-
-
-
-
-    def get_value(self, dictionary):
-        print 'Inside get value'
-        return serializers.HyperlinkedModelSerializer.get_value(self, dictionary)
-
     class Meta:
         model = Image
         fields = ('pk','url',)
+        
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
     image = ImageSerializer()
     label = LabelSerializer()

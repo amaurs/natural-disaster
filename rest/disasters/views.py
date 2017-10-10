@@ -37,8 +37,7 @@ def predict(image_path):
         # Feed the image_data as input to the graph and get first prediction
         softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
     
-    predictions = sess.run(softmax_tensor, \
-             {'DecodeJpeg/contents:0': image_data})
+    predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
     
     # Sort to show labels of first prediction in order of confidence
     top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
@@ -50,23 +49,6 @@ def predict(image_path):
         score = predictions[0][node_id]
         result[human_string] = score
     return result
-
-class ImageViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited.
-    """
-
-
-    def retrieve(self, request, *args, **kwargs):
-        print 'I am in the retrieve method.'
-        print args
-        print kwargs
-        print request.data.viewkeys()
-        
-        return RetrieveModelMixin.retrieve(self, request, *args, **kwargs)
-
-    queryset = Image.objects.all()
-    serializer_class = ImageSerializer
     
 class ImageList(generics.ListCreateAPIView):
     queryset = Image.objects.all()
@@ -76,18 +58,11 @@ class ImageList(generics.ListCreateAPIView):
 class ImageDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
-        print 'Inside the get method.'
         return self.retrieve(request, *args, **kwargs)
 
     
     def retrieve(self, request, *args, **kwargs):
-        print 'I am in the retrieve method.'
-        print args
-        print kwargs
-        print request.data.viewkeys()
         instance = self.get_object()
-        
-        print instance.name
         
         if not os.path.exists(PREDICT_FOLDER):
             os.makedirs(PREDICT_FOLDER)
@@ -117,3 +92,5 @@ class SampleViewSet(viewsets.ModelViewSet):
     """
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
+    
+    
