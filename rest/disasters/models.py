@@ -23,7 +23,7 @@ class Image(models.Model):
 
 class Sample(models.Model):
     name = models.CharField(max_length=50)
-    url = models.CharField(max_length=50)
+    url = models.CharField(max_length=200)
     image = models.ForeignKey(Image, related_name='image')
     width = models.IntegerField()
     height = models.IntegerField()
@@ -31,5 +31,11 @@ class Sample(models.Model):
     y = models.IntegerField()
     label = models.ForeignKey(Label, related_name='label')
 
+class Model(models.Model):
+    name = models.CharField(max_length=50)
+    path = models.CharField(max_length=200)
+    original_model = models.CharField(max_length=200)
+    accuracy = models.FloatField()
+    
 
 

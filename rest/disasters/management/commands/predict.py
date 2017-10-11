@@ -88,8 +88,9 @@ class Command(BaseCommand):
                 
                 
                 
-                if result['damage'] > .95:
-                    draw.rectangle([i, j, i + w, j + w], outline="white")
+                if result['damage'] > .80:
+                    draw.rectangle([i, j, i + w, j + w], outline="red")
+                    draw.rectangle([i+1, j+1, i + w-1, j + w-1], outline="red")
                     stringres = stringres + "1"
                 else:
                     stringres = stringres + "0"
