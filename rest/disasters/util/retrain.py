@@ -8,12 +8,15 @@ import json
 import os
 import re
 import sys
+import tarfile
 
 from django.db.models.query_utils import Q
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
 
 from rest.disasters.models import Label, Sample
+from rest.disasters.util import make_dir
+from six.moves import urllib
 
 
 def get_query_group(label_name):
@@ -148,8 +151,27 @@ def create_image_lists_from_database(label_names, testing_percentage, validation
     for label in label_names:
         result[label] = create_image_list_from_database(label, testing_percentage, validation_percentage) 
 
-    return result    
-    
-if __name__ == '__main__':
-    parsed = create_image_lists('/Users/agutierrez/tf_files/augment/',10,10)
-    print json.dumps(parsed, indent=4, sort_keys=True)
+    return result
+
+def maybe_download_and_extract(target_directory, model_url):
+
+    make_dir(target_directory)
+    filename = model_url.split('/')[-1]
+    filepath = os.path.join(target_directory, filename)
+    if not os.path.exists(filepath):
+
+        def _progress(count, block_size, total_size):
+            sys.stdout.write('\r>> Downloading %s %.1f%%' %
+                       (filename,
+                        float(count * block_size) / float(total_size) * 100.0))
+            sys.stdout.flush()
+
+        filepath, _ = urllib.request.urlretrieve(model_url,
+                                             filepath,
+                                             _progress)
+        statinfo = os.stat(filepath)
+        print 'Successfully downloaded: %s %s bytes' % (filename, statinfo.st_size)
+    else:
+        statinfo = os.stat(filepath)
+        print 'File already exists: %s %s bytes' % (filename, statinfo.st_size)
+    tarfile.open(filepath, 'r:gz').extractall(target_directory)  

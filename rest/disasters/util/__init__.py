@@ -1,1 +1,7 @@
-DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+from os import path
+import os
+
+
+def make_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
