@@ -16,6 +16,7 @@ from django.db.models.query_utils import Q
 from rest.disasters.models import Sample, Label
 from rest.settings import THUMB_FOLDER, AUGMENT_FOLDER, \
     TARGET_WIDTH, TARGET_HEIGHT
+from rest.disasters.util.retrain import get_query_group
 
 
 def create_random_transformation(image_path, target_path):
@@ -43,20 +44,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         label_name = options['label']
-        low = Label.objects.all().get(name='Bajo')
-        medium = Label.objects.all().get(name='Medio')
-        severe = Label.objects.all().get(name='Severo')
-        absent = Label.objects.all().get(name='Ausente')
         
-        if label_name == 'damage':
-            query_group = Q(label=low) | Q(label=medium) | Q(label=severe)
-            
-        elif label_name == 'nodamage':
-            query_group = Q(label=absent)
-        else:
-            print 'Label should be damage or nodamage.'
-            sys.exit(-1)
-            
+        query_group = get_query_group(label_name)    
+        
         directory = '%s/%s' % (AUGMENT_FOLDER, label_name)
         print directory
         if not os.path.exists(directory):
