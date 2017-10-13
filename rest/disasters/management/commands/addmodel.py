@@ -16,8 +16,8 @@ from django.core.management.base import BaseCommand
 from tensorflow.contrib.metrics.python.metrics.classification import accuracy
 
 from rest.disasters import models
-from rest.disasters.models import Image, Town, Model, Sample
-from rest.settings import IMAGE_FOLDER, MODEL_FOLDER
+from rest.disasters.models import Image, Town, Model, Sample, TrainsWith
+from rest.settings import MODEL_FOLDER
 
 
 class Command(BaseCommand):
@@ -54,7 +54,7 @@ class Command(BaseCommand):
                              original_model=original_model) 
         model_object.save()
         
-        model_object.samples.add(sample)
+        TrainsWith(model=model_object, sample=sample, type='test').save()
 
             
         

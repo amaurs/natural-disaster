@@ -4,9 +4,9 @@ Created on Oct 11, 2017
 @author: agutierrez
 '''
 import hashlib
-import json
 import os
 import re
+import struct
 import sys
 import tarfile
 
@@ -174,4 +174,15 @@ def maybe_download_and_extract(target_directory, model_url):
     else:
         statinfo = os.stat(filepath)
         print 'File already exists: %s %s bytes' % (filename, statinfo.st_size)
-    tarfile.open(filepath, 'r:gz').extractall(target_directory)  
+    tarfile.open(filepath, 'r:gz').extractall(target_directory) 
+    
+def write_list_of_floats_to_file(list_of_floats , file_path, bottleneck_tensor_size=2048):
+    s = struct.pack('d' * bottleneck_tensor_size, *list_of_floats)
+    with open(file_path, 'wb') as f:
+        f.write(s)
+
+
+def read_list_of_floats_from_file(file_path, bottleneck_tensor_size=2048):
+    with open(file_path, 'rb') as f:
+        s = struct.unpack('d' * bottleneck_tensor_size, f.read())
+    return list(s) 

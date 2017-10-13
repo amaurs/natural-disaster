@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -32,11 +31,30 @@ class Sample(models.Model):
     label = models.ForeignKey(Label, related_name='label')
 
 class Model(models.Model):
+    '''
+    Represents a model that was trained to predict on new data. Different
+    models can achieve different accuracies.
+    '''
     name = models.CharField(max_length=50)
     path = models.CharField(max_length=200)
     original_model = models.CharField(max_length=200)
     accuracy = models.FloatField()
-    samples = models.ManyToManyField(Sample)
+    trains_with = models.ManyToManyField(Sample, through='TrainsWith')
+    
+    class Meta:
+        ordering = ['accuracy']
+    
+class TrainsWith(models.Model):
+    '''
+    This extra table represents the relationship between the models
+    and the samples it is trained with. A sample can be part of the
+    test, training or validation sets.
+    '''
+    model = models.ForeignKey(Model, related_name='model', on_delete=models.CASCADE)
+    sample = models.ForeignKey(Sample, related_name='sample', on_delete=models.CASCADE)
+    type = models.CharField(max_length=50)
+    
+
     
 
 
