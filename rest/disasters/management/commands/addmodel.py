@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand
 from tensorflow.contrib.metrics.python.metrics.classification import accuracy
 
 from rest.disasters import models
-from rest.disasters.models import Image, Town, Model
+from rest.disasters.models import Image, Town, Model, Sample
 from rest.settings import IMAGE_FOLDER, MODEL_FOLDER
 
 
@@ -46,11 +46,15 @@ class Command(BaseCommand):
         
         copyfile(path, new_path)
         
+        sample = Sample.objects.get(pk=90)
+        
         model_object = Model(name=new_name,
                              path=new_path,
                              accuracy=float(accuracy),
                              original_model=original_model) 
         model_object.save()
+        
+        model_object.samples.add(sample)
 
             
         

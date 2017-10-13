@@ -36,6 +36,7 @@ class Model(models.Model):
     path = models.CharField(max_length=200)
     original_model = models.CharField(max_length=200)
     accuracy = models.FloatField()
+    samples = models.ManyToManyField(Sample)
     
 
 
