@@ -11,12 +11,14 @@ import sys
 import tarfile
 
 from django.db.models.query_utils import Q
+import tensorflow
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
 
 from rest.disasters.models import Label, Sample
 from rest.disasters.util import make_dir
 from six.moves import urllib
+from tensorflow.contrib.slim.python.slim.nets.resnet_v1 import bottleneck
 
 
 def get_query_group(label_name):
@@ -176,6 +178,37 @@ def maybe_download_and_extract(target_directory, model_url):
         print 'File already exists: %s %s bytes' % (filename, statinfo.st_size)
     tarfile.open(filepath, 'r:gz').extractall(target_directory) 
     
+def create_inception_graph(model_dir, bottleneck_tensor_name, jpeg_data_tensor_name, resized_input_tensor_name):
+  
+    with tensorflow.Session() as sess:
+        model_filename = os.path.join(
+            model_dir, 'classify_image_graph_def.pb')
+        with gfile.FastGFile(model_filename, 'rb') as f:
+            graph_def = tensorflow.GraphDef()
+            graph_def.ParseFromString(f.read())
+            bottleneck_tensor, jpeg_data_tensor, resized_input_tensor = (
+                tensorflow.import_graph_def(graph_def, name='', return_elements=[
+                    bottleneck_tensor_name, jpeg_data_tensor_name,
+                    resized_input_tensor_name]))
+    return sess.graph, bottleneck_tensor, jpeg_data_tensor, resized_input_tensor
+
+def get_image_path(image_lists, label_name, index, image_dir, category):
+
+    if label_name not in image_lists:
+        tensorflow.logging.fatal('Label does not exist %s.', label_name)
+    label_lists = image_lists[label_name]
+    if category not in label_lists:
+        tensorflow.logging.fatal('Category does not exist %s.', category)
+    category_list = label_lists[category]
+    if not category_list:
+        tensorflow.logging.fatal('Label %s has no images in the category %s.',
+                     label_name, category)
+    mod_index = index % len(category_list)
+    base_name = category_list[mod_index]
+    sub_dir = label_lists['dir']
+    full_path = os.path.join(image_dir, sub_dir, base_name)
+    return full_path
+
 def write_list_of_floats_to_file(list_of_floats , file_path, bottleneck_tensor_size=2048):
     s = struct.pack('d' * bottleneck_tensor_size, *list_of_floats)
     with open(file_path, 'wb') as f:
