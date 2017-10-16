@@ -7,12 +7,16 @@ Created on Oct 11, 2017
 
 from datetime import datetime
 import json
+from shutil import copyfile
+import uuid
 
 from django.core.management.base import BaseCommand
 import tensorflow
+from tensorflow.contrib.metrics.python.metrics.classification import accuracy
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
 
+from rest.disasters.models import Model
 from rest.disasters.util import make_dir
 from rest.disasters.util.retrain import create_image_lists_from_database, \
     create_image_lists, maybe_download_and_extract, create_inception_graph, \
@@ -35,7 +39,7 @@ class Command(BaseCommand):
         
         final_tensor_name = 'final_result'
         
-        how_many_training_steps = 5000
+        how_many_training_steps = 500
         train_batch_size = 100
         summaries_dir = TEMP_FOLDER
         validation_batch_size = 100
@@ -132,4 +136,18 @@ class Command(BaseCommand):
             f.write(output_graph_def.SerializeToString())
         with gfile.FastGFile(output_labels, 'w') as f:
             f.write('\n'.join(image_lists.keys()) + '\n')
-        print 'Done'
+        
+        
+        new_name = '%s.pb' % uuid.uuid4()
+        new_path = '%s/%s' % (MODEL_FOLDER, new_name)
+        
+        model_object = Model(name=new_name,
+                             path=new_path,
+                             accuracy=float(test_accuracy),
+                             original_model=output_graph) 
+        model_object.save()
+        
+        copyfile(output_graph, new_path)
+        
+        
+        

@@ -242,7 +242,7 @@ def cache_bottlenecks(session, image_lists, image_dir, bottleneck_dir,
 
                 how_many_bottlenecks += 1
 
-                print(str(how_many_bottlenecks) + ' bottleneck files created.' + category)
+                print(str(how_many_bottlenecks) + ' bottleneck files created.')
                 
                 
 def get_or_create_bottleneck(sess, image_lists, label_name, index, image_dir,

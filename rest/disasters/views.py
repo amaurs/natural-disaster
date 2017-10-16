@@ -2,20 +2,18 @@
 from __future__ import unicode_literals
 
 import os
-import sys
 
 import PIL
-from django.shortcuts import render
 from rest_framework import viewsets, generics
-from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import RetrieveModelMixin
 from rest_framework.response import Response
 import tensorflow
 
 from rest.disasters.models import Image, Sample, Model
 from rest.disasters.serializers import ImageSerializer, SampleSerializer
-from rest.settings import IMAGE_FOLDER, PREDICT_FOLDER, MODEL_FOLDER
+from rest.settings import IMAGE_FOLDER, PREDICT_FOLDER
 
+
+    
 
 def predict(image_path):
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -25,12 +23,7 @@ def predict(image_path):
 
     # Loads label file, strips off carriage return
     label_lines = ['nodamage', 'damage']
-    
-    print label_lines
-
     model = Model.objects.all().order_by('-accuracy')
-    
-    print model[0].path
     
     # Unpersists graph from file
     with tensorflow.gfile.FastGFile(model[0].path, 'rb') as f:
@@ -44,7 +37,7 @@ def predict(image_path):
     
     predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
     
-    print predictions
+    
     # Sort to show labels of first prediction in order of confidence
     top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
     

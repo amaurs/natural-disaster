@@ -33,7 +33,7 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
     label = LabelSerializer()
     class Meta:
         model = Sample
-        fields = ('name', 'url', 'x', 'y', 'width', 'height', 'image', 'label',)
+        fields = ('pk','name', 'url', 'x', 'y', 'width', 'height', 'image', 'label',)
         
     def create(self, validated_data):
         image_url = validated_data.pop('image')['url']
