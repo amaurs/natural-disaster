@@ -16,7 +16,7 @@ class Image(models.Model):
     original_name = models.CharField(max_length=50,default=None)
     gps = models.CharField(max_length=200)
     checked = models.BooleanField()
-    url = models.CharField(max_length=50,default=None)
+    url = models.CharField(max_length=200,default=None)
     town = models.ForeignKey(Town, related_name='town')
     models.CharField(max_length=50)
 

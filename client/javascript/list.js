@@ -66,7 +66,7 @@ function make_base_auth(user, password) {
 }
 
 function getSource(newUrl) {
-    var finalUrl = "http://127.0.0.1:8081/" + newUrl;
+    var finalUrl = newUrl;
     newSource = new ol.source.ImageStatic({
                         url: finalUrl,
                         projection: projection,
@@ -96,7 +96,10 @@ function loadNewImage() {
     console.log(global.currentData['results']);
     for(var i = 0; i < global.currentData['results'].length; i++) {
 
-        var url = "http://192.168.15.2:8081/" + global.currentData['results'][i]['url'];
+
+
+        var url = global.currentData['results'][i]['url'];
+        console.log(url);
         var label = global.currentData['results'][i]['label'].name;
         var pk = global.currentData['results'][i]['pk'];
 

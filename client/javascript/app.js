@@ -66,7 +66,7 @@ function make_base_auth(user, password) {
 }
 
 function getSource(newUrl) {
-    var finalUrl = "http://127.0.0.1:8081/" + newUrl;
+    var finalUrl = newUrl;
     newSource = new ol.source.ImageStatic({
                         url: finalUrl,
                         projection: projection,

@@ -172,5 +172,7 @@ TEMP_FOLDER = os.environ.get('TEMP_FOLDER')
 
 BOTTLENECK_FOLDER = os.environ.get('BOTTLENECK_FOLDER')
 
+BASE_URL = os.environ.get('BASE_URL')
+
 TARGET_WIDTH = 227
 TARGET_HEIGHT = 227
