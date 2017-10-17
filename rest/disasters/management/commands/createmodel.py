@@ -6,30 +6,49 @@ Created on Oct 11, 2017
 
 
 from datetime import datetime
-import json
+import random
 from shutil import copyfile
 import uuid
 
 from django.core.management.base import BaseCommand
+import numpy
 import tensorflow
-from tensorflow.contrib.metrics.python.metrics.classification import accuracy
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
 
 from rest.disasters.models import Model
 from rest.disasters.util import make_dir
 from rest.disasters.util.retrain import create_image_lists_from_database, \
-    create_image_lists, maybe_download_and_extract, create_inception_graph, \
+    maybe_download_and_extract, create_inception_graph, \
     cache_bottlenecks, add_final_training_ops, add_evaluation_step, \
     get_random_cached_bottlenecks
 from rest.settings import MODEL_FOLDER, TEMP_FOLDER, BOTTLENECK_FOLDER
+from skimage.feature import hog
+
+
+def random_model(ground_truth):
+    
+    total = 0
+    for element in ground_truth:
+
+        choice = random.randint(0,1)
+
+        
+        if choice == numpy.argmin(element):
+            total = total + 1 
+    
+    print 1.0 * total / len(ground_truth)
+
+
+def hog_model(image_lists):
+    
+    print image_lists
 
 
 class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        #parsed = create_image_lists('/Users/agutierrez/tf_files/augment/',10,10)
         image_lists = create_image_lists_from_database(['damage','nodamage'], 10, 10)
         image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'
         #print json.dumps(parsed, indent=4, sort_keys=True)
@@ -39,12 +58,12 @@ class Command(BaseCommand):
         
         final_tensor_name = 'final_result'
         
-        how_many_training_steps = 500
+        how_many_training_steps = 10
         train_batch_size = 100
         summaries_dir = TEMP_FOLDER
-        validation_batch_size = 100
-        eval_step_interval = 10
-        test_batch_size = -1
+        validation_batch_size = 20
+        eval_step_interval = 20
+        test_batch_size = 200
         output_graph = 'damage_graph.pb'
         output_labels = 'damage_labels.txt'
         
@@ -127,6 +146,13 @@ class Command(BaseCommand):
                 [evaluation_step, prediction],
                 feed_dict={bottleneck_input: test_bottlenecks,
                  ground_truth_input: test_ground_truth})
+        
+        
+        #print predictions
+        #print test_ground_truth
+        
+        
+        
         print('Final test accuracy = %.1f%% (N=%d)' % (
             test_accuracy * 100, len(test_bottlenecks)))
         # Write out the trained graph and labels with the weights stored as constants.
@@ -137,6 +163,8 @@ class Command(BaseCommand):
         with gfile.FastGFile(output_labels, 'w') as f:
             f.write('\n'.join(image_lists.keys()) + '\n')
         
+        
+        random_model(test_ground_truth)
         
         new_name = '%s.pb' % uuid.uuid4()
         new_path = '%s/%s' % (MODEL_FOLDER, new_name)
