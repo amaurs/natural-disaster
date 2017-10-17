@@ -42,13 +42,19 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
         label_object = Label.objects.all().get(name=label_name)
         parts = image_url.split('/')
         
-        image_path = '%s/%s' % (IMAGE_FOLDER, parts[1])
+        print image_url
+        print parts
+        
+        image_path = '%s/%s' % (IMAGE_FOLDER, parts[-1])
         thumb_path = '%s/%s' % (THUMB_FOLDER, validated_data['name'])
         
         x = int(validated_data['x'])
         y = int(validated_data['y'])
         w = int(validated_data['width'])
         h = int(validated_data['height'])
+
+        print image_path
+        print validated_data
 
         image_mem = PIL.Image.open(image_path)
         
@@ -57,6 +63,6 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
                         x + w,
                         y + h)).save(thumb_path)
         
-        sample = Sample.objects.create(label=label_object, image=image_object,**validated_data)
+        sample = Sample.objects.create(label=label_object, image=image_object, **validated_data)
         return sample
         

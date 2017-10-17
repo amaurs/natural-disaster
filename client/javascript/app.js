@@ -160,7 +160,7 @@ $(document).ready(function(){
                 type: "POST",
                 data: JSON.stringify({
                     "name": uuid + ".jpg",
-                    "url": "thumb/" + uuid + ".jpg",
+                    "url": "http://localhost:8081/thumb/" + uuid + ".jpg",
                     "image": {
                         "url": global.currentData['results'][global.index]['url']
                     },
