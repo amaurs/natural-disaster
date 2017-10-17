@@ -14,10 +14,12 @@ import uuid
 
 from django.core.management.base import BaseCommand
 import numpy
+from skimage.feature import hog
 import tensorflow
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
 
+from rest.disasters.management.commands.createhogmodel import get_test_set
 from rest.disasters.models import Model
 from rest.disasters.util import make_dir
 from rest.disasters.util.retrain import create_image_lists_from_database, \
@@ -25,7 +27,6 @@ from rest.disasters.util.retrain import create_image_lists_from_database, \
     cache_bottlenecks, add_final_training_ops, add_evaluation_step, \
     get_random_cached_bottlenecks
 from rest.settings import MODEL_FOLDER, TEMP_FOLDER, BOTTLENECK_FOLDER
-from skimage.feature import hog
 
 
 def random_model(ground_truth):
@@ -52,6 +53,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         image_lists = create_image_lists_from_database('Juchitán de Zaragoza', ['damage','nodamage'], 20, 20)
+        
+        
+        train_image_lists = get_test_set()
+        
+        image_lists['damage']['testing'] = train_image_lists['damage']['testing']
+        image_lists['nodamage']['testing'] = train_image_lists['nodamage']['testing']
+        
+        
         print image_lists
         
         image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'

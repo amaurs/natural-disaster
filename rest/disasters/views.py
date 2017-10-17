@@ -54,7 +54,7 @@ class ImageList(generics.ListCreateAPIView):
     This method creates a queryset filtering by town, this means
     only images from that town will be displayed.
     '''
-    town = Town.objects.get(pk=2)
+    town = Town.objects.get(pk=3)
     queryset = Image.objects.filter(town=town)
     serializer_class = ImageSerializer
 
