@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 16, 2017
 
@@ -53,7 +55,7 @@ def get_X_y(image_lists, label, method='hog'):
     return X, y
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        image_lists = create_image_lists_from_database(['damage','nodamage'], 60, 0)
+        image_lists = create_image_lists_from_database('Juchitán de Zaragoza', ['damage','nodamage'], 60, 0)
         method = 'hog'
         X, y = get_X_y(image_lists, 'training', method)
         classifier = RandomForestClassifier(n_jobs=4, random_state=0)

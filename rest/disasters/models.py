@@ -1,13 +1,18 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models
+from django.db import models, connection
 
 
 class Town(models.Model):
     name = models.CharField(max_length=50)
     
 class Label(models.Model):
+    '''
+    This model just represents the label to which each 
+    sample is classified.
+    '''
     name = models.CharField(max_length=50)
 
 class Image(models.Model):
@@ -53,6 +58,34 @@ class TrainsWith(models.Model):
     model = models.ForeignKey(Model, related_name='model', on_delete=models.CASCADE)
     sample = models.ForeignKey(Sample, related_name='sample', on_delete=models.CASCADE)
     type = models.CharField(max_length=50)
+    
+def get_samples_by_town(town):
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT s.name FROM disasters_sample AS s, disasters_image \
+                                                       AS i, disasters_town \
+                                                       AS t \
+                                                       WHERE s.image_id=i.id \
+                                                       AND i.town_id=t.id \
+                                                       AND t.name=%s', [town])
+        result = cursor.fetchall()
+    return [row[0] for row in result]
+
+def get_samples_by_town_and_label(town, label):
+    
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT s.name FROM disasters_sample AS s, \
+                                           disasters_image AS i, \
+                                           disasters_town AS t, \
+                                           disasters_label AS l \
+                                                       WHERE s.image_id=i.id \
+                                                       AND i.town_id=t.id \
+                                                       AND s.label_id=l.id \
+                                                       AND t.name=%s \
+                                                       AND l.name=%s', [town, label])
+        
+        
+        result = cursor.fetchall()
+    return [row[0] for row in result]
     
 
     

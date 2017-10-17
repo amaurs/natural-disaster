@@ -8,24 +8,25 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 import tensorflow
 
-from rest.disasters.models import Image, Sample, Model
+from rest.disasters.models import Image, Sample, Model, Town
 from rest.disasters.serializers import ImageSerializer, SampleSerializer
+from rest.disasters.util import make_dir
 from rest.settings import IMAGE_FOLDER, PREDICT_FOLDER
 
 
-    
-
 def predict(image_path):
+    '''
+    This is a quick and dirty method to perform a prediction
+    on a patch of an image. TODO: create a lazy method for the
+    loading of the model so it only gets loaded once.
+    '''
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-    # Read in the image_data
     image_data = tensorflow.gfile.FastGFile(image_path, 'rb').read()
 
-    # Loads label file, strips off carriage return
     label_lines = ['nodamage', 'damage']
     model = Model.objects.all().order_by('-accuracy')
-    
-    # Unpersists graph from file
+
     with tensorflow.gfile.FastGFile(model[0].path, 'rb') as f:
         graph_def = tensorflow.GraphDef()
         graph_def.ParseFromString(f.read())
@@ -42,9 +43,6 @@ def predict(image_path):
     top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
     
     result = {}
-    
-    print top_k
-    
     for node_id in top_k:
         human_string = label_lines[node_id]
         score = predictions[0][node_id]
@@ -52,22 +50,21 @@ def predict(image_path):
     return result
     
 class ImageList(generics.ListCreateAPIView):
-    queryset = Image.objects.all()
+    '''
+    This method creates a queryset filtering by town, this means
+    only images from that town will be displayed.
+    '''
+    town = Town.objects.get(pk=2)
+    queryset = Image.objects.filter(town=town)
     serializer_class = ImageSerializer
-
 
 class ImageDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
-
-    
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        
-        if not os.path.exists(PREDICT_FOLDER):
-            os.makedirs(PREDICT_FOLDER)
-        
+        make_dir(PREDICT_FOLDER)
         new_path = '%s/%s' % (IMAGE_FOLDER, instance.name)
         predict_path = '%s/%s' % (PREDICT_FOLDER, instance.name)
         

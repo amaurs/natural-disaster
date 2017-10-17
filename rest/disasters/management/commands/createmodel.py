@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 11, 2017
 
@@ -49,7 +51,9 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        image_lists = create_image_lists_from_database(['damage','nodamage'], 10, 10)
+        image_lists = create_image_lists_from_database('Juchitán de Zaragoza', ['damage','nodamage'], 20, 20)
+        print image_lists
+        
         image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'
         #print json.dumps(parsed, indent=4, sort_keys=True)
         make_dir(TEMP_FOLDER)
@@ -58,12 +62,12 @@ class Command(BaseCommand):
         
         final_tensor_name = 'final_result'
         
-        how_many_training_steps = 10
-        train_batch_size = 100
+        how_many_training_steps = 500
+        train_batch_size = 5
         summaries_dir = TEMP_FOLDER
-        validation_batch_size = 20
+        validation_batch_size = 5
         eval_step_interval = 20
-        test_batch_size = 200
+        test_batch_size = 100
         output_graph = 'damage_graph.pb'
         output_labels = 'damage_labels.txt'
         
