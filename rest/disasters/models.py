@@ -24,6 +24,9 @@ class Image(models.Model):
     url = models.CharField(max_length=200,default=None)
     town = models.ForeignKey(Town, related_name='town')
     models.CharField(max_length=50)
+    lat = models.FloatField(default=0.0)
+    lon = models.FloatField(default=0.0)
+    
 
 class Sample(models.Model):
     name = models.CharField(max_length=50)

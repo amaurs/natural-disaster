@@ -26,7 +26,7 @@ class LabelSerializer(serializers.HyperlinkedModelSerializer):
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
-        fields = ('pk','url',)
+        fields = ('pk','url','lat','lon')
         
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
     image = ImageSerializer()
