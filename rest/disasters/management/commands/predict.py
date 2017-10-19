@@ -68,7 +68,7 @@ class Command(BaseCommand):
         for j in range(0, height, h):
             for i in range(0, width, w):
                 #print '%s-%s.jpg' % (i,j)
-                if(i + w_limit < width and j + w_limit < height):
+                if(i + w_limit < width and j + h_limit < height):
                     image.crop((i,
                             j,
                             i + w_limit,
