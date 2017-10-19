@@ -1,4 +1,9 @@
+
+
 import PIL.Image
+from fiona import collection
+from shapely.geometry import Point, mapping
+from fiona.crs import from_epsg
 import numpy
 from pyproj import Proj, transform
 import rasterio
@@ -79,7 +84,7 @@ def crop(filepath, x, y, size_width, size_height):
                     score = predictions[0][node_id]
                     result[human_string] = score
                     
-                if result['damage'] > .85:
+                if result['damage'] > .95:
                     boxes.append(numpy.array([i,j,i + w_limit, j + h_limit]))
                 
                 if (cont % 100) == 0:
@@ -88,13 +93,27 @@ def crop(filepath, x, y, size_width, size_height):
     no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), .1)
     inProj = Proj(init=projection)
     outProj = Proj(init='epsg:4326')
-    for box in no_overlap_boxes:
-        point = get_box_center(box)
+    
+    schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
+    with collection("some.shp", "w" ,crs=from_epsg(32615), driver='ESRI Shapefile', schema=schema) as output:
         
-        pretty_print(transform(inProj, outProj, point[0], point[1]))
-    
-    
-    
+            
+            
+        
+        print "["      
+        for box in no_overlap_boxes:
+            point = get_box_center(box)
+            point_world = pixel_to_world(point[0], point[1], geotransform)
+            print "[%s,%s]," % (point_world[0], point_world[1])
+            #pretty_print(transform(inProj, outProj, point_world[0], point_world[1]))
+        print "]"
+
+def list_to_shape(path, points):
+    schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
+    with collection(path, 'w' ,crs=from_epsg(32615), driver='ESRI Shapefile', schema=schema) as output:
+        for point in points:
+            point = Point(point[0], point[1])
+            output.write({'geometry':mapping(point), 'properties':{'name':'test'}})
 def get_box_center(box):
     return int((box[0]+box[2]) / 2), int((box[1] + box[3]) / 2)
     
