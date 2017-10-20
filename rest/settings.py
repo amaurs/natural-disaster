@@ -174,5 +174,7 @@ BOTTLENECK_FOLDER = os.environ.get('BOTTLENECK_FOLDER')
 
 BASE_URL = os.environ.get('BASE_URL')
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 TARGET_WIDTH = 227
 TARGET_HEIGHT = 227

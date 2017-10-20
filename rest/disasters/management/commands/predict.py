@@ -14,7 +14,7 @@ import numpy
 import tensorflow
 
 from rest.disasters.util import non_max_suppression_fast
-from rest.disasters.views import predict
+from rest.disasters.views import simple_predict
 from rest.settings import MODEL_FOLDER
 
 
@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         filepath = options['path']
-        #print predict(filepath)
+        #print simple_predict(filepath)
         
         image = PIL.Image.open(filepath)
         
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                             j,
                             i + w_limit,
                             j + h_limit)).save('aux.jpg')
-                    #res = predict('aux.jpg')
+                    #res = simple_predict('aux.jpg')
                 
                     image_data = tensorflow.gfile.FastGFile('aux.jpg', 'rb').read()
                 
