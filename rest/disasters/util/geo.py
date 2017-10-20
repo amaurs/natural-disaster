@@ -1,25 +1,25 @@
+'''
+Created on Oct 20, 2017
 
-
+@author: agutierrez
+'''
 import sys
 
-import PIL.Image
 from fiona import collection
 from fiona.crs import from_epsg
 import numpy
 from pyproj import Proj, transform
 import rasterio
 from shapely.geometry import Point, mapping
-import tensorflow
 
+from rest.disasters.models import Model
 from rest.disasters.util import non_max_suppression_fast, get_basename
-from rest.settings import TEMP_FOLDER
+from rest.disasters.util.predict import TensorModel
 
 
 def crop(filepath, x, y, size_width, size_height):
-    
     with rasterio.open(filepath) as src:
         bands = src.read()
-        
         if len(bands) == 4:
             r, g , b, a = bands
             del a
@@ -27,23 +27,13 @@ def crop(filepath, x, y, size_width, size_height):
             r, g , b = bands
         else:
             sys.exit(-1)
-        
         scene_width = src.width 
         scene_height = src.height
         projection = src.crs.to_dict()['init']
         geotransform = src.transform
-        
-    with tensorflow.gfile.FastGFile("/Users/agutierrez/Documents/oaxaca/model/beb47c35-aba5-40c5-8cff-17eada9d6fb5.pb", 'rb') as model_file:
-        graph_def = tensorflow.GraphDef()
-        graph_def.ParseFromString(model_file.read())
-        tensorflow.import_graph_def(graph_def, name='')
-
-    with tensorflow.Session() as session:
-        # Feed the image_data as input to the graph and get first prediction
-        softmax_tensor = session.graph.get_tensor_by_name('final_result:0')
-    
+    models = Model.objects.all().order_by('-accuracy')
+    tensor_model = TensorModel(models[0].path)
     label_lines = ['nodamage','damage']
-
     boxes = []
     w_limit = size_width
     h_limit = size_height
@@ -64,18 +54,9 @@ def crop(filepath, x, y, size_width, size_height):
                 rgbArray[..., 0] = r[offset_y:offset_y + size_height,offset_x:offset_x + size_width]
                 rgbArray[..., 1] = g[offset_y:offset_y + size_height,offset_x:offset_x + size_width]
                 rgbArray[..., 2] = b[offset_y:offset_y + size_height,offset_x:offset_x + size_width]
-                im = PIL.Image.fromarray(rgbArray)
-                name = '%s/%s' % (TEMP_FOLDER, 'test.jpg')
-                im.save(name)
-                
-                
-                image_data = tensorflow.gfile.FastGFile(name, 'rb').read()
-                predictions = session.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
-                
+                predictions = tensor_model.predict_from_array(rgbArray)
                 top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
-    
                 result = {}
-    
                 for node_id in top_k:
                     human_string = label_lines[node_id]
                     score = predictions[0][node_id]
@@ -86,7 +67,8 @@ def crop(filepath, x, y, size_width, size_height):
                 
                 if (cont % 100) == 0:
                     print 'progress: %s' % (cont * 1.0 / total)
-            
+    
+    
     no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), .1)
     inProj = Proj(init=projection)
     outProj = Proj(init='epsg:4326')
@@ -101,25 +83,31 @@ def crop(filepath, x, y, size_width, size_height):
         
     list_to_shape('%s.shp' % get_basename(filepath), world_boxes, 32615)    
     
-def list_to_shape(path, boxes, epsg):
+def list_to_shape(path, points, epsg):
+    '''
+    Creates a shape file with points in the given coordinate system.
+    '''
     schema = { 'geometry': 'Point', 'properties': { 'lat': 'float', 'lon': 'float' } }
     with collection(path, 'w' ,crs=from_epsg(epsg), driver='ESRI Shapefile', schema=schema) as output:
-        for i in range(len(boxes['world'])):
-            point = Point(boxes['world'][i][0], boxes['world'][i][1])
-            output.write({'geometry':mapping(point), 'properties':{'lon':boxes['latlon'][i][0], 
-                                                                   'lat':boxes['latlon'][i][1]}
+        for i in range(len(points['world'])):
+            point = Point(points['world'][i][0], points['world'][i][1])
+            output.write({'geometry':mapping(point), 'properties':{'lon':points['latlon'][i][0], 
+                                                                   'lat':points['latlon'][i][1]}
                           })
 def get_box_center(box):
+    '''
+    Computes the centroid of the box represented by the two points.
+    '''
     return int((box[0]+box[2]) / 2), int((box[1] + box[3]) / 2)
     
 def pretty_print(lon_lat):
-    
+    '''
+    Just prints the latitude and longitude values in the order that google maps wants.
+    '''
     print lon_lat[1], lon_lat[0]
     
 def pixel_to_world(x, y, geotransform):
-    
     world_x = geotransform[0] + x * geotransform[1] + y * geotransform[2]
     world_y = geotransform[3] + x * geotransform[4] + y * geotransform[5] 
-    
     return world_x, world_y
     
