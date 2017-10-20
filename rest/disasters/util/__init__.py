@@ -10,7 +10,12 @@ import numpy
 def make_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
-        
+
+def get_basename(filename):
+    '''
+    Get base name of a file without its suffix. 
+    '''
+    return os.path.splitext(os.path.basename(filename))[0]
 
 # Malisiewicz et al.
 def non_max_suppression_fast(boxes, overlapThresh):

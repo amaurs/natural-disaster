@@ -11,7 +11,7 @@ import numpy
 from pyproj import transform, Proj
 import rasterio
 
-from rest.disasters.util import non_max_suppression_fast
+from rest.disasters.util import non_max_suppression_fast, get_basename
 from rest.disasters.util.geo import crop, get_box_center, pretty_print, \
     pixel_to_world, list_to_shape
 
@@ -25,6 +25,7 @@ class Command(BaseCommand):
         filepath = options['path']
         start_time = time.time()
         
+        '''
         with rasterio.open(filepath) as src:
             geotransform = src.transform
         
@@ -193,16 +194,21 @@ class Command(BaseCommand):
         no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), .1)
         inProj = Proj(init='epsg:32615')
         outProj = Proj(init='epsg:4326')  
-        world = []   
+
+            
+        world_boxes = {'latlon':[],'world':[]}
+  
         for box in no_overlap_boxes:
             point = get_box_center(box)
             point_world = pixel_to_world(point[0], point[1], geotransform)
-            
-            world.append(point_world)
+            world_boxes['world'].append(point_world)
+            world_boxes['latlon'].append(transform(inProj, outProj, point_world[0], point_world[1]))
             #print "[%s,%s]," % (point_world[0], point_world[1])
             #pretty_print(transform(inProj, outProj, point_world[0], point_world[1]))
       
-        list_to_shape('test.shp', world)        
-        #crop(filepath, 0, 0, 299, 299)
+        list_to_shape('%s.shp' % get_basename(filepath), world_boxes, 32615)        
+        '''
+        
+        crop(filepath, 0, 0, 299, 299)
         
         print 'Command execution is done in %s seconds.' % (time.time() - start_time)

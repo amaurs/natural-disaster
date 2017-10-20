@@ -1,50 +1,47 @@
 
 
+import sys
+
 import PIL.Image
 from fiona import collection
-from shapely.geometry import Point, mapping
 from fiona.crs import from_epsg
 import numpy
 from pyproj import Proj, transform
 import rasterio
+from shapely.geometry import Point, mapping
 import tensorflow
 
-from rest.disasters.util import non_max_suppression_fast
+from rest.disasters.util import non_max_suppression_fast, get_basename
 from rest.settings import TEMP_FOLDER
 
 
 def crop(filepath, x, y, size_width, size_height):
     
     with rasterio.open(filepath) as src:
-        r, g, b = src.read()
+        bands = src.read()
+        
+        if len(bands) == 4:
+            r, g , b, a = bands
+            del a
+        elif len(bands) == 3:
+            r, g , b = bands
+        else:
+            sys.exit(-1)
+        
         scene_width = src.width 
         scene_height = src.height
         projection = src.crs.to_dict()['init']
         geotransform = src.transform
-        print(src.count)
-        print(src.indexes)
         
-        
-        print dir(src)
-        
-        
-        for val in src.sample([(x, y)]): 
-            print "the value:", val 
-        
-        print src.affine
-        
-        
-     # Unpersists graph from file
-    with tensorflow.gfile.FastGFile("/Users/agutierrez/Documents/oaxaca/model/beb47c35-aba5-40c5-8cff-17eada9d6fb5.pb", 'rb') as f:
+    with tensorflow.gfile.FastGFile("/Users/agutierrez/Documents/oaxaca/model/beb47c35-aba5-40c5-8cff-17eada9d6fb5.pb", 'rb') as model_file:
         graph_def = tensorflow.GraphDef()
-        graph_def.ParseFromString(f.read())
+        graph_def.ParseFromString(model_file.read())
         tensorflow.import_graph_def(graph_def, name='')
 
-    with tensorflow.Session() as sess:
+    with tensorflow.Session() as session:
         # Feed the image_data as input to the graph and get first prediction
-        softmax_tensor = sess.graph.get_tensor_by_name('final_result:0')
-        
-    stringres = ''
+        softmax_tensor = session.graph.get_tensor_by_name('final_result:0')
+    
     label_lines = ['nodamage','damage']
 
     boxes = []
@@ -73,7 +70,7 @@ def crop(filepath, x, y, size_width, size_height):
                 
                 
                 image_data = tensorflow.gfile.FastGFile(name, 'rb').read()
-                predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
+                predictions = session.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
                 
                 top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
     
@@ -93,27 +90,25 @@ def crop(filepath, x, y, size_width, size_height):
     no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), .1)
     inProj = Proj(init=projection)
     outProj = Proj(init='epsg:4326')
+  
+    world_boxes = {'latlon':[],'world':[]}
+  
+    for box in no_overlap_boxes:
+        point = get_box_center(box)
+        point_world = pixel_to_world(point[0], point[1], geotransform)
+        world_boxes['world'].append(point_world)
+        world_boxes['latlon'].append(transform(inProj, outProj, point_world[0], point_world[1]))
+        
+    list_to_shape('%s.shp' % get_basename(filepath), world_boxes, 32615)    
     
-    schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
-    with collection("some.shp", "w" ,crs=from_epsg(32615), driver='ESRI Shapefile', schema=schema) as output:
-        
-            
-            
-        
-        print "["      
-        for box in no_overlap_boxes:
-            point = get_box_center(box)
-            point_world = pixel_to_world(point[0], point[1], geotransform)
-            print "[%s,%s]," % (point_world[0], point_world[1])
-            #pretty_print(transform(inProj, outProj, point_world[0], point_world[1]))
-        print "]"
-
-def list_to_shape(path, points):
-    schema = { 'geometry': 'Point', 'properties': { 'name': 'str' } }
-    with collection(path, 'w' ,crs=from_epsg(32615), driver='ESRI Shapefile', schema=schema) as output:
-        for point in points:
-            point = Point(point[0], point[1])
-            output.write({'geometry':mapping(point), 'properties':{'name':'test'}})
+def list_to_shape(path, boxes, epsg):
+    schema = { 'geometry': 'Point', 'properties': { 'lat': 'float', 'lon': 'float' } }
+    with collection(path, 'w' ,crs=from_epsg(epsg), driver='ESRI Shapefile', schema=schema) as output:
+        for i in range(len(boxes['world'])):
+            point = Point(boxes['world'][i][0], boxes['world'][i][1])
+            output.write({'geometry':mapping(point), 'properties':{'lon':boxes['latlon'][i][0], 
+                                                                   'lat':boxes['latlon'][i][1]}
+                          })
 def get_box_center(box):
     return int((box[0]+box[2]) / 2), int((box[1] + box[3]) / 2)
     
