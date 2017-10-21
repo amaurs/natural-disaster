@@ -82,7 +82,7 @@ class Command(BaseCommand):
         train_image_lists = get_test_set()
         X_train, y_train = get_X_y(train_image_lists, 'testing', method)
         
-        predictions = classifier.simple_predict(X_train)
+        predictions = classifier.predict(X_train)
         confusion = pandas.crosstab(y_train, predictions, rownames=['Actual Class'], colnames=['Predicted Class'])
         print confusion
         accuracy = accuracy_score(y_train, predictions)
