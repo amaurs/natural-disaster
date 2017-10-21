@@ -3,7 +3,9 @@ Created on Oct 20, 2017
 
 @author: agutierrez
 '''
+import json
 import sys
+import urllib2
 
 import cv2
 from fiona import collection
@@ -14,7 +16,7 @@ import rasterio
 from shapely.geometry import Point, mapping
 from skimage.io import imread
 
-from rest.disasters.models import Model
+from rest.disasters.models import Model, Town, Debris
 from rest.disasters.util import non_max_suppression_fast, get_basename
 from rest.disasters.util.predict import TensorModel
 from rest.settings import TEMP_FOLDER
@@ -24,7 +26,7 @@ OVERLAP_THRESHOLD = 0.1
 DECISION_THRESHOLD = 0.95
 LABEL_LINES = ['nodamage','damage']
 
-def apply_prediction_on_raster(filepath):
+def apply_prediction_on_raster(filepath, town_name):
     '''
     This method opens an image from a raster file using the rasterio package.
     '''
@@ -42,19 +44,21 @@ def apply_prediction_on_raster(filepath):
         projection = src.crs.to_dict()['init']
         geotransform = src.transform
 
-    no_overlap_boxes = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299)
+    no_overlap_boxes, scores = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299)
     original = Proj(init=projection)    
     target = Proj(init='epsg:4326')
-    world_boxes = {'latlon':[],'world':[]}
-    for box in no_overlap_boxes:
-        point = get_box_center(box)
+    world_boxes = {'latlon':[],'world':[],'score':[], 'address':[]}
+    for i in range(len(no_overlap_boxes)):
+        point = get_box_center(no_overlap_boxes[i])
         point_world = pixel_to_world(point[0], point[1], geotransform)
+        lat_lon = transform(original, target, point_world[0], point_world[1])
         world_boxes['world'].append(point_world)
-        world_boxes['latlon'].append(transform(original, target, point_world[0], point_world[1]))
-    
+        world_boxes['latlon'].append(lat_lon)
+        world_boxes['score'].append(scores[i])
+        world_boxes['address'].append(address_from_lat_lon(lat_lon[1], lat_lon[0]))
     shape_path = '%s/%s.shp' % (TEMP_FOLDER, get_basename(filepath))
     list_to_shape(shape_path, world_boxes, int(projection.split(':')[1]))
-    
+    list_to_database(world_boxes, town_name)
 
     
 def apply_prediction_on_image(filepath):
@@ -71,7 +75,7 @@ def apply_prediction_on_image(filepath):
     
     
     
-    no_overlap_boxes = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299)
+    no_overlap_boxes, scores = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299)
     
     
     cv2_image_array = numpy.zeros(image_array.shape)
@@ -95,6 +99,7 @@ def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizonta
     processed = 0
     tensor_model = get_tensor_model()
     boxes = []
+    scores = []
     for y in range(0, height, vertical_step):
         for x in range(0, width, horizontal_step):
             processed = processed + 1 
@@ -115,6 +120,7 @@ def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizonta
                     result[human_string] = score
                     
                 if result[LABEL_LINES[1]] > DECISION_THRESHOLD:
+                    scores.append(result[LABEL_LINES[1]])
                     boxes.append(numpy.array([x,y,x + horizontal_window, y + vertical_window]))
                 
                 if (processed % 10) == 0:
@@ -123,7 +129,7 @@ def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizonta
                     sys.stdout.flush()
     print ''
     no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), OVERLAP_THRESHOLD)
-    return no_overlap_boxes 
+    return no_overlap_boxes, scores
 
 def get_tensor_model():
     models = Model.objects.all().order_by('-accuracy')
@@ -134,13 +140,35 @@ def list_to_shape(path, points, epsg):
     '''
     Creates a shape file with points in the given coordinate system.
     '''
-    schema = { 'geometry': 'Point', 'properties': { 'lat': 'float', 'lon': 'float' } }
+    schema = { 'geometry': 'Point', 'properties': { 'lat': 'float', 'lon': 'float', 'address':'str' } }
     with collection(path, 'w' ,crs=from_epsg(epsg), driver='ESRI Shapefile', schema=schema) as output:
         for i in range(len(points['world'])):
             point = Point(points['world'][i][0], points['world'][i][1])
             output.write({'geometry':mapping(point), 'properties':{'lon':points['latlon'][i][0], 
-                                                                   'lat':points['latlon'][i][1]}
+                                                                   'lat':points['latlon'][i][1],
+                                                                   'address':points['address'][i]}
+                          
                           })
+def list_to_database(points, town_name):
+    '''
+    Persists the points to database.
+    '''
+    town = Town.objects.get(name=town_name)
+    model = Model.objects.all().order_by('-accuracy').first()
+    for i in range(len(points['world'])):
+        score = points['score'][i]
+        lon = points['latlon'][i][0]
+        lat = points['latlon'][i][1]
+        address = points['address'][i]
+        debris = Debris(lat = lat,
+                        lon = lon,
+                        town = town,
+                        address = address,
+                        threshold = DECISION_THRESHOLD,
+                        model = model,
+                        score = score)
+        debris.save()
+    
 def get_box_center(box):
     '''
     Computes the centroid of the box represented by the two points.
@@ -152,7 +180,19 @@ def pretty_print(lon_lat):
     Just prints the latitude and longitude values in the order that google maps wants.
     '''
     print lon_lat[1], lon_lat[0]
-    
+
+def address_from_lat_lon(lat, lon):
+    '''
+    This method queries google api to retrieve the address given the latitude and
+    longitude coordinates.
+    '''
+    url = 'https://maps.googleapis.com/maps/api/geocode/json?&latlng=%s,%s' % (lat, lon)
+    data = json.load(urllib2.urlopen(url))
+    address = ''
+    if len(data['results']) > 0:
+        address = data['results'][0]['formatted_address']
+    return address
+
 def pixel_to_world(x, y, geotransform):
     world_x = geotransform[0] + x * geotransform[1] + y * geotransform[2]
     world_y = geotransform[3] + x * geotransform[4] + y * geotransform[5] 

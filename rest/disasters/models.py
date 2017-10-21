@@ -62,6 +62,20 @@ class TrainsWith(models.Model):
     sample = models.ForeignKey(Sample, related_name='sample', on_delete=models.CASCADE)
     type = models.CharField(max_length=50)
     
+class Debris(models.Model):
+    '''
+    This table will represent the damaged zones found by the algorithm,
+    they are related with the town it was taken from and in a latitude 
+    and longitude format.
+    '''
+    lat = models.FloatField()
+    lon = models.FloatField()
+    town = models.ForeignKey(Town)
+    address = models.CharField(max_length=200)
+    threshold = models.FloatField()
+    model = models.ForeignKey(Model)
+    score = models.FloatField()
+    
 def get_samples_by_town(town):
     with connection.cursor() as cursor:
         cursor.execute('SELECT s.name FROM disasters_sample AS s, disasters_image \
@@ -85,6 +99,15 @@ def get_samples_by_town_and_label(town, label):
                                                        AND s.label_id=l.id \
                                                        AND t.name=%s \
                                                        AND l.name=%s', [town, label])
+        
+        
+        result = cursor.fetchall()
+    return [row[0] for row in result]
+
+def get_images_by_town_id(town):
+    
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT i.name FROM disasters_image as i WHERE i.town_id=%s LIMIT 50', [town])
         
         
         result = cursor.fetchall()
