@@ -28,6 +28,7 @@ urlpatterns = [
     
     url(r'^', include(router.urls)),
     url(r'^images/$', views.ImageList.as_view()),
+    url(r'^debris/$', views.DebrisList.as_view()),
     url(r'^images/(?P<pk>[0-9]+)/(?P<x>[0-9]+)/(?P<y>[0-9]+)/(?P<w>[0-9]+)/(?P<h>[0-9]+)$', views.ImageDetail.as_view()),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/', rest_views.obtain_auth_token)

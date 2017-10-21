@@ -107,7 +107,7 @@ def get_samples_by_town_and_label(town, label):
 def get_images_by_town_id(town):
     
     with connection.cursor() as cursor:
-        cursor.execute('SELECT i.name FROM disasters_image as i WHERE i.town_id=%s LIMIT 50', [town])
+        cursor.execute('SELECT i.name FROM disasters_image as i WHERE i.town_id=%s LIMIT 100', [town])
         
         
         result = cursor.fetchall()

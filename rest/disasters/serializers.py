@@ -7,10 +7,10 @@ Created on Oct 2, 2017
 import PIL
 from django.contrib.auth.models import User
 from rest_framework import serializers
-
-from rest.disasters.models import Image, Sample, Label, Town
-from rest.settings import IMAGE_FOLDER, THUMB_FOLDER
 from rest_framework.serializers import BaseSerializer
+
+from rest.disasters.models import Image, Sample, Label, Town, Debris
+from rest.settings import IMAGE_FOLDER, THUMB_FOLDER
 
 
 class TownSerializer(serializers.HyperlinkedModelSerializer):
@@ -27,6 +27,11 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
         fields = ('pk','url','lat','lon')
+        
+class DebrisSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Debris
+        fields = ('lat','lon','address')
         
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
     image = ImageSerializer()

@@ -8,12 +8,21 @@ from rest_framework import viewsets, generics
 from rest_framework.response import Response
 import tensorflow
 
-from rest.disasters.models import Image, Sample, Model, Town
-from rest.disasters.serializers import ImageSerializer, SampleSerializer
+from rest.disasters.models import Image, Sample, Model, Town, Debris
+from rest.disasters.serializers import ImageSerializer, SampleSerializer, \
+    DebrisSerializer
 from rest.disasters.util import make_dir
 from rest.disasters.util.predict import TensorModel, simple_predict
 from rest.settings import IMAGE_FOLDER, PREDICT_FOLDER
 
+
+class DebrisList(generics.ListCreateAPIView):
+    '''
+    This method shows the damaged places.
+    '''
+    queryset = Debris.objects.all()
+    serializer_class = DebrisSerializer
+    pagination_class = None
 
 class ImageList(generics.ListCreateAPIView):
     '''
