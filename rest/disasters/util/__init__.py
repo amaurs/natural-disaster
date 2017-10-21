@@ -32,8 +32,6 @@ def non_max_suppression_fast(boxes, overlapThresh):
     # initialize the list of picked indexes    
     pick = []
  
-    print boxes
- 
     # grab the coordinates of the bounding boxes
     x1 = boxes[:,0]
     y1 = boxes[:,1]
