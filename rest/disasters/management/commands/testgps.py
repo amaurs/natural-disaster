@@ -28,8 +28,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         
         #image_path = '%s/%s' % (IMAGE_FOLDER, '1f66274c-7900-4a65-9a53-26fb5e79d52d.jpg')
-        image_path = '%s/%s' % (IMAGE_FOLDER, '25460d51-6b6e-4417-a728-615be7d3da0b.jpg')
-        print extract_mean_std_feature_vector(image_path)
+        #image_path = '%s/%s' % (IMAGE_FOLDER, '25460d51-6b6e-4417-a728-615be7d3da0b.jpg')
+        #print extract_mean_std_feature_vector(image_path)
         
         colors = {1:'r',2:'g',3:'b'}
         feature_array = []

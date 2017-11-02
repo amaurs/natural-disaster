@@ -13,6 +13,7 @@ import PIL.Image
 from django.core.management.base import BaseCommand
 
 from rest.disasters.models import Image, Town
+from rest.disasters.util import get_lat_lon_from_database
 from rest.settings import IMAGE_FOLDER, BASE_URL
 
 
@@ -53,12 +54,17 @@ class Command(BaseCommand):
         copyfile(filename, new_path)
         
         town = Town.objects.get(name=town_name)
+        
+        gps = json.dumps(metadata['GPSInfo'])
+        lat, lon = get_lat_lon_from_database(gps)
         image = Image(name=new_name,
                       date=date_string,
                       checked=False,
                       town=town,
                       url='%s/images/%s' % (BASE_URL,new_name),
-                      gps=json.dumps(metadata['GPSInfo']),
+                      gps=gps,
+                      lat=lat,
+                      lon=lon,
                       original_name=os.path.splitext(os.path.basename(filename))[0]) 
         image.save()
         
