@@ -26,7 +26,7 @@ class LabelSerializer(serializers.HyperlinkedModelSerializer):
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
-        fields = ('pk','url','lat','lon')
+        fields = ('pk','url','lat','lon','town_id')
         
 class DebrisSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
