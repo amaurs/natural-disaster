@@ -2,14 +2,7 @@
 var map;
 var town = 3;
 var vectorLayer;
-var select;
 var vectorSource = new ol.source.Vector({});
-var selectedFeatures;
-var selectedFeature;
-var container = document.getElementById('popup');
-var content = document.getElementById('popup-content');
-var closer = document.getElementById('popup-closer');
-
 
 function calculateCentroid(coords) {
   let longitude = 0;
@@ -34,7 +27,6 @@ function townStyle(town) {
       });
       return style;
 }
-
 
 function retrieveData(urlCall) {
     $.ajax({

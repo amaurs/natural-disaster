@@ -58,13 +58,6 @@ var map = new ol.Map({
 
 var global = {};
 
-function make_base_auth(user, password) {
-    var tok = user + ':' + password;
-    console.log(tok);
-    var hash = btoa(tok);
-    return 'Basic ' + hash;
-}
-
 function getSource(newUrl) {
     var finalUrl = newUrl;
     newSource = new ol.source.ImageStatic({
@@ -74,13 +67,11 @@ function getSource(newUrl) {
                     });
     return newSource;
 }
-
 function loadNewImage() {
     source = getSource(global.currentData['results'][global.index]['url']);
     layer = map.getLayers().getArray()[0];
     layer.setSource(source);
 }
-
 function makeAjaxCall(urlCall, load) {
     $.ajax({
         type: 'GET',
@@ -104,14 +95,9 @@ function uuidv4() {
     return v.toString(16);
   });
 }
-
 $(document).ready(function(){
-    
     var data;
-    
     makeAjaxCall("http://localhost:8000/images/", true);
-    
-
     $("#next").click(function(){
         if (global.currentData) {
             var size = global.currentData['results'].length;

@@ -1,3 +1,21 @@
+#wrapper {
+
+}
+.navbar{
+  float:left;
+  width:20%;
+  height:100%;
+
+}
+.navbar ul{
+  list-style-type: none;
+}
+#container {
+  float:right;
+  width:80%;
+  height:100%;
+}
+
 
 .ol-popup:after, .ol-popup:before {
   top: 100%;
@@ -29,18 +47,6 @@
 .ol-popup-closer:after {
   content: "✖";
 }
-#map {
-    width: 100%;
-}
-
-#container {
-
-}
-
-.thumbnail {
-    width: 150px;
-    height: 150px;
-}
 
 .ol-popup {
   position: absolute;
@@ -52,4 +58,15 @@
   border: 1px solid #cccccc;
   bottom: 12px;
   left: -50px;
+}
+
+#map {
+    width: 100%;
+    float:right;
+}
+
+
+.thumbnail {
+    width: 150px;
+    height: 150px;
 }
