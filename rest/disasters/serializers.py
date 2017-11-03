@@ -34,6 +34,18 @@ class DebrisSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('lat','lon','address')
         
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
+
+    def update(self, instance, validated_data):
+        '''
+        Super ugly way to update the label. This is a hack and should be fixed at some point.
+        '''
+        if instance.label_id == 4:
+            instance.label_id = 5
+        else:
+            instance.label_id = 4
+        instance.save()
+        return instance
+
     image = ImageSerializer()
     label = LabelSerializer()
     class Meta:
@@ -46,28 +58,18 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
         label_name = validated_data.pop('label')['name']
         label_object = Label.objects.all().get(name=label_name)
         parts = image_url.split('/')
-        
-        print image_url
-        print parts
-        
         image_path = '%s/%s' % (IMAGE_FOLDER, parts[-1])
         thumb_path = '%s/%s' % (THUMB_FOLDER, validated_data['name'])
-        
         x = int(validated_data['x'])
         y = int(validated_data['y'])
         w = int(validated_data['width'])
         h = int(validated_data['height'])
-
-        print image_path
-        print validated_data
-
         image_mem = PIL.Image.open(image_path)
-        
         image_mem.crop((x,
                         y,
                         x + w,
                         y + h)).save(thumb_path)
-        
         sample = Sample.objects.create(label=label_object, image=image_object, **validated_data)
         return sample
+    
         

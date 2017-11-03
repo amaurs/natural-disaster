@@ -5,6 +5,7 @@ import os
 
 import PIL
 from rest_framework import viewsets, generics
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.response import Response
 import tensorflow
 
@@ -71,7 +72,7 @@ class SampleViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = Sample.objects.all()
+    queryset = Sample.objects.all().order_by('-pk')
     serializer_class = SampleSerializer
     
     
