@@ -67,6 +67,27 @@
 
 
 .thumbnail {
-    width: 150px;
-    height: 150px;
+    width: 200px;
+    height: 200px;
+    padding:0px;
+    border: 0px;
+}
+
+.no-damage {
+  background-color: rgb(155,155,255);
+}
+.damage {
+  background-color: rgb(255,155,155);
+}
+.card {
+  width: 250px;
+  height: 300px;
+  padding: 25px;
+}
+.controls {
+  display: inline;
+}
+.edit-button {
+  width: 98px;
+
 }

@@ -18,20 +18,20 @@ function deleteFactory(pk) {
 }
 
 function loadNewImage() {
-    console.log(global.currentData['results']);
     for(var i = 0; i < global.currentData['results'].length; i++) {
         var url = global.currentData['results'][i]['url'];
-        console.log(url);
         var label = global.currentData['results'][i]['label'].name;
         var pk = global.currentData['results'][i]['pk'];
-        var $div = $("<div  class=\"row\"></div> ");
-        var $p = $("<div class=\"col-sd-4\">"+label+"</div>")
-        var $image = $("<div  class=\"col-sd-4 thumbnail\"><img src='"+url+"'></div>");
-        var $input = $('<div  class=\"col-sd-4\"><button class="btn">Delete</button></div>');
-        $input.click(deleteFactory(pk));
-        $div.append($p);
+        var $div = $("<div class='card " + (label=="Ausente"?"no-damage":"damage") +"'></div> ");
+        var $image = $("<img class='thumbnail' src='" + url + "'>");
+        var $controls = $("<div class='controls'></div")
+        var $delete = $("<button class='btn edit-button'>Delete</button>");
+        var $update = $("<button class='btn edit-button'>Update</button>");
+        //$delete.click(deleteFactory(pk));
         $div.append($image);
-        $div.append($input);
+        $controls.append($delete);
+        $controls.append($update);
+        $div.append($controls);
         $("#images").append($div);
     }
 }
