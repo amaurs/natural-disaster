@@ -2,13 +2,28 @@ var global = {};
 
 function deleteFactory(pk) {
     return function deleteThumbnail() {
-        console.log(pk);
         $.ajax({
             url: "http://localhost:8000/samples/" + pk + "/",
             type: "DELETE",
             success: function (data) {
                 console.log(data);
-                makeAjaxCall(global.currentUrl, true);
+                location.reload();
+            },
+            beforeSend : function(req) {
+                req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
+            }
+        });
+    }
+}
+
+function updateFactory(pk) {
+    return function updateThumbnail() {
+        $.ajax({
+            url: "http://localhost:8000/samples/" + pk + "/",
+            type: "PATCH",
+            success: function (data) {
+                console.log(data);
+                location.reload();
             },
             beforeSend : function(req) {
                 req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
@@ -27,7 +42,8 @@ function loadNewImage() {
         var $controls = $("<div class='controls'></div")
         var $delete = $("<button class='btn edit-button'>Delete</button>");
         var $update = $("<button class='btn edit-button'>Update</button>");
-        //$delete.click(deleteFactory(pk));
+        $delete.click(deleteFactory(pk));
+        $update.click(updateFactory(pk));
         $div.append($image);
         $controls.append($delete);
         $controls.append($update);

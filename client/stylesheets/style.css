@@ -65,6 +65,9 @@
     float:right;
 }
 
+#images {
+  background-color: rgb(155,255,155);
+}
 
 .thumbnail {
     width: 200px;
@@ -80,6 +83,7 @@
   background-color: rgb(255,155,155);
 }
 .card {
+  float:left;
   width: 250px;
   height: 300px;
   padding: 25px;
@@ -89,5 +93,5 @@
 }
 .edit-button {
   width: 98px;
-
+  margin:1px;
 }
