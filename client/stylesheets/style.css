@@ -2,18 +2,29 @@
 
 }
 .navbar{
-  float:left;
-  width:20%;
-  height:100%;
+  width:100%;
+  background: gray;
 
 }
 .navbar ul{
   list-style-type: none;
 }
+.navbar li{
+  display: inline;
+}
+
+.navbar a{
+  color: white;
+  font-size: 20px;
+  margin:5px;
+}
+
 #container {
-  float:right;
-  width:80%;
-  height:100%;
+  width:100%;
+}
+#map {
+    width: 80%;
+    height: 80%;
 }
 
 
@@ -60,10 +71,7 @@
   left: -50px;
 }
 
-#map {
-    width: 100%;
-    float:right;
-}
+
 
 #images {
   background-color: rgb(155,255,155);
@@ -93,5 +101,10 @@
 }
 .edit-button {
   width: 98px;
+  margin:1px;
+}
+
+.submit-button {
+  width: 110px;
   margin:1px;
 }

@@ -3,6 +3,27 @@ var height = 3000;
 var featureWidth = featureHeight = 322;
 var extent = [0, 0, width, height];
 var source = new ol.source.Vector({wrapX: false});
+
+var container = document.getElementById('popup');
+var content = document.getElementById('popup-content');
+var closer = document.getElementById('popup-closer');
+
+var overlay = new ol.Overlay(({
+    element: container,
+    autoPan: true,
+    autoPanAnimation: {
+    duration: 250
+  }
+}));
+closer.onclick = closePopup;
+
+function closePopup() {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+}
+
+
 var projection = new ol.proj.Projection({
   code: 'photo-image',
   units: 'pixels',
@@ -45,6 +66,7 @@ translate.on("translateend", function(event){
     }
 });
 var map = new ol.Map({
+    overlays: [overlay],
     layers: [raster, vector],
     target: 'map',
     view: new ol.View({
@@ -95,6 +117,36 @@ function uuidv4() {
     return v.toString(16);
   });
 }
+
+function sendInfo(uuid, url, x, y, w, h, label) {
+    $.ajax({
+        url: "http://localhost:8000/samples/",
+        type: "POST",
+        data: JSON.stringify({
+            "name": uuid + ".jpg",
+            "url": "http://localhost:8081/thumb/" + uuid + ".jpg",
+            "image": {
+                "url": url
+            },
+            "height": h,
+            "width": w,
+            "y": y,
+            "x": x,
+            "label": {
+                "name": label
+            }
+        }),
+        dataType: "json",
+        contentType: "application/json",
+        success: function (data) {
+            console.log("Upload was successful.");
+        },
+        beforeSend : function(request) {
+            request.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
+        }
+    });
+}
+
 $(document).ready(function(){
     var data;
     makeAjaxCall("http://localhost:8000/images/", true);
@@ -133,39 +185,42 @@ $(document).ready(function(){
         }
     });
     $("#submit").click(function(){
+
+
+
         if (global.currentData) {
             var extent = polygonFeature.getGeometry().getExtent();
+            console.log(extent);
+
+            var coordinate = [extent[2], extent[3]]; 
+
+            var controls = "<div class='controls'><button class='btn submit-button damage' id='damage-submit'>Damaged</button><button class='btn submit-button no-damage' id='no-damage-submit'>Not Damaged</button></div";
+
+
+
+
+            content.innerHTML = controls;
+            overlay.setPosition(coordinate);
+            
+
+
             var x = Math.round(extent[0]);
             var y = Math.round(height - (featureHeight + extent[1]));
             var w = featureWidth;
             var h = featureHeight;
             var uuid = uuidv4();
-            
-            $.ajax({
-                url: "http://localhost:8000/samples/",
-                type: "POST",
-                data: JSON.stringify({
-                    "name": uuid + ".jpg",
-                    "url": "http://localhost:8081/thumb/" + uuid + ".jpg",
-                    "image": {
-                        "url": global.currentData['results'][global.index]['url']
-                    },
-                    "height": h,
-                    "width": w,
-                    "y": y,
-                    "x": x,
-                    "label": {
-                        "name": $("#label :selected").text()
-                    }
-                }),
-                dataType: "json",
-                contentType: "application/json",
-                success: function (data) {
-                    window.alert("Upload was successful.");
-                },
-                beforeSend : function(req) {
-                    req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
-                }
+            var url = global.currentData['results'][global.index]['url'];
+            var label = $("#label :selected").text();
+
+
+            $("#damage-submit").click(function(){
+                sendInfo(uuid, url, x, y, w, h, 'Presente');
+                closePopup();
+            });
+
+            $("#no-damage-submit").click(function(){
+                sendInfo(uuid, url, x, y, w, h, 'Ausente');
+                closePopup();
             });
         }
     });

@@ -20,17 +20,17 @@
       </div>
       <div id="container" >
         <h1>Tag Page</h1>
-        <div id="map" class="map"></div>
         <div id="controls">
           <button id="prev" class="btn">Prev</button>
           <button id="submit" class="btn">Submit</button>
-          <button id="predict" class="btn">Predict</button>
-          <select id="label" class="form-group">
-              <option value="1">Ausente</option>
-              <option value="2">Presente</option>
-          </select>
           <button id="next" class="btn">Next</button>
-          <p>Prediction:<span id="prediction"></span></p>
+        </div>
+        <div id="map" class="map"></div>
+        <div id="popup" class="ol-popup">
+          <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+          <div id="popup-content">
+            
+          </div>
         </div>
       </div>
     </div>
