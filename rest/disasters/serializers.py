@@ -7,7 +7,9 @@ Created on Oct 2, 2017
 import PIL
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from rest_framework.serializers import BaseSerializer
+from rest_framework.exceptions import ValidationError
+from rest_framework.fields import empty
+from rest_framework.serializers import BaseSerializer, as_serializer_error
 
 from rest.disasters.models import Image, Sample, Label, Town, Debris
 from rest.settings import IMAGE_FOLDER, THUMB_FOLDER
@@ -26,7 +28,7 @@ class LabelSerializer(serializers.HyperlinkedModelSerializer):
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Image
-        fields = ('pk','url','lat','lon','town_id')
+        fields = ('pk','name','url','lat','lon','town_id')
         
 class DebrisSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -34,6 +36,8 @@ class DebrisSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('lat','lon','address')
         
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
+
+
 
     def update(self, instance, validated_data):
         '''
@@ -51,7 +55,7 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
     town = TownSerializer()
     class Meta:
         model = Sample
-        fields = ('pk','name', 'url', 'x', 'y', 'width', 'height', 'image', 'label','town')
+        fields = ('pk','name', 'url', 'x', 'y', 'width', 'height', 'image', 'label', 'town')
         
     def create(self, validated_data):
         print validated_data

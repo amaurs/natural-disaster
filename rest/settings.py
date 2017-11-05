@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG',True)
 
-ALLOWED_HOSTS = ["localhost","192.168.15.5","127.0.0.1"]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -175,6 +175,28 @@ BOTTLENECK_FOLDER = os.environ.get('BOTTLENECK_FOLDER')
 BASE_URL = os.environ.get('BASE_URL')
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+
+LOGGING = { 'version': 1, 
+           'disable_existing_loggers': False, 
+           'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                },
+                        
+            },
+           'loggers': {
+               'django': {
+                   'handlers': ['console'],
+                   'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                   },
+                'rest.disasters': {
+                    'handlers': ['console'],
+                    'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+                    'formatter': 'simple',
+                    },
+            }
+        }
 
 TARGET_WIDTH = 227
 TARGET_HEIGHT = 227
