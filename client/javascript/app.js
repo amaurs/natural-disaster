@@ -89,7 +89,8 @@ function getSource(newUrl) {
     return newSource;
 }
 function loadNewImage() {
-    source = getSource(global.currentData['results'][global.index]['url']);
+    console.log(global.currentData['results'][global.index]);
+    source = getSource(IMAGES_URL + "/images/" + global.currentData['results'][global.index]['name']);
     layer = map.getLayers().getArray()[0];
     layer.setSource(source);
 }
@@ -117,7 +118,7 @@ function uuidv4() {
   });
 }
 
-function sendInfo(uuid, url, x, y, w, h, label) {
+function sendInfo(uuid, url, name, x, y, w, h, label) {
     $.ajax({
         url: SERVER_URL + "/samples/",
         type: "POST",
@@ -125,7 +126,8 @@ function sendInfo(uuid, url, x, y, w, h, label) {
             "name": uuid + ".jpg",
             "url": IMAGES_URL + "/thumb/" + uuid + ".jpg",
             "image": {
-                "url": url
+                "url": url,
+                "name": name
             },
             "height": h,
             "width": w,
@@ -150,12 +152,10 @@ function sendInfo(uuid, url, x, y, w, h, label) {
 }
 
 
-
-"Juchitán de Zaragoza"
-
 $(document).ready(function(){
     var data;
     
+    $("#title").text("Tag " + getTownName());
 
     makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", true);
     $("#next").click(function(){
@@ -218,16 +218,17 @@ $(document).ready(function(){
             var h = featureHeight;
             var uuid = uuidv4();
             var url = global.currentData['results'][global.index]['url'];
+            var name = global.currentData['results'][global.index]['name'];
             var label = $("#label :selected").text();
 
 
             $("#damage-submit").click(function(){
-                sendInfo(uuid, url, x, y, w, h, 'Presente');
+                sendInfo(uuid, url, name, x, y, w, h, 'Presente');
                 closePopup();
             });
 
             $("#no-damage-submit").click(function(){
-                sendInfo(uuid, url, x, y, w, h, 'Ausente');
+                sendInfo(uuid, url, name, x, y, w, h, 'Ausente');
                 closePopup();
             });
         }

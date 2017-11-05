@@ -86,27 +86,6 @@ class SampleViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        
-        print kwargs
-        kwargs['context'] = self.get_serializer_context()
-        return serializer_class(*args, **kwargs)
-
-
-    def create(self, request, *args, **kwargs):
-
-        return CreateModelMixin.create(self, request, *args, **kwargs)
-
-
-    def perform_create(self, serializer):
-        return CreateModelMixin.perform_create(self, serializer)
-
-
-    def get_success_headers(self, data):
-        return CreateModelMixin.get_success_headers(self, data)
-
     queryset = Sample.objects.all().order_by('-pk')
     serializer_class = SampleSerializer
     
@@ -116,7 +95,7 @@ class SampleList(generics.ListCreateAPIView):
     only images from that town will be displayed.
     '''
 
-    queryset = Sample.objects.all()
+    queryset = Sample.objects.all().order_by('-pk')
     serializer_class = SampleSerializer
     
 class SampleListByTown(generics.ListCreateAPIView):
@@ -126,7 +105,7 @@ class SampleListByTown(generics.ListCreateAPIView):
     '''
 
     def get_queryset(self):
-        return Sample.objects.filter(town_id=self.kwargs['town'])
+        return Sample.objects.filter(town_id=self.kwargs['town']).order_by('-pk')
     
     serializer_class = SampleSerializer
     

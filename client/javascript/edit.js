@@ -34,7 +34,7 @@ function updateFactory(pk) {
 
 function loadNewImage() {
     for(var i = 0; i < global.currentData['results'].length; i++) {
-        var url = global.currentData['results'][i]['url'];
+        var url = IMAGES_URL + "/thumb/" + global.currentData['results'][i]['name'];
         var label = global.currentData['results'][i]['label'].name;
         var pk = global.currentData['results'][i]['pk'];
         var $div = $("<div class='card " + (label=="Ausente"?"no-damage":"damage") +"'></div> ");
@@ -73,6 +73,7 @@ function makeAjaxCall(urlCall, load) {
 
 $(document).ready(function(){
     var data;
+    $("#title").text("Edit " + getTownName());
     makeAjaxCall(SERVER_URL + "/samples/list/" + getTownId() + "/", true);
     $("#next").click(function(){
         if(global.currentData['next'] != null) {
