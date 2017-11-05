@@ -48,18 +48,24 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
 
     image = ImageSerializer()
     label = LabelSerializer()
+    town = TownSerializer()
     class Meta:
         model = Sample
-        fields = ('pk','name', 'url', 'x', 'y', 'width', 'height', 'image', 'label',)
+        fields = ('pk','name', 'url', 'x', 'y', 'width', 'height', 'image', 'label','town')
         
     def create(self, validated_data):
+        print validated_data
         image_url = validated_data.pop('image')['url']
-        image_object = Image.objects.all().get(url=image_url)
+        image_object = Image.objects.get(url=image_url)
         label_name = validated_data.pop('label')['name']
-        label_object = Label.objects.all().get(name=label_name)
+        label_object = Label.objects.get(name=label_name)
+        town_name = validated_data.pop('town')['name']
+        town_object = Town.objects.get(name=town_name)
         parts = image_url.split('/')
         image_path = '%s/%s' % (IMAGE_FOLDER, parts[-1])
         thumb_path = '%s/%s' % (THUMB_FOLDER, validated_data['name'])
+        print validated_data
+        
         x = int(validated_data['x'])
         y = int(validated_data['y'])
         w = int(validated_data['width'])
@@ -69,7 +75,7 @@ class SampleSerializer(serializers.HyperlinkedModelSerializer):
                         y,
                         x + w,
                         y + h)).save(thumb_path)
-        sample = Sample.objects.create(label=label_object, image=image_object, **validated_data)
+        sample = Sample.objects.create(label=label_object, image=image_object, town=town_object, **validated_data)
         return sample
     
         

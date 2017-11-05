@@ -19,14 +19,15 @@ from rest_framework import routers
 from rest.disasters import views
 import rest_framework.authtoken.views as rest_views
 
-
 router = routers.DefaultRouter()
 #router.register(r'images', views.ImageViewSet, 'Image')
 router.register(r'samples', views.SampleViewSet, 'Sample')
 
+
 urlpatterns = [
     
     url(r'^', include(router.urls)),
+    url(r'^samples/list/(?P<town>[123])/$', views.SampleListByTown.as_view()),
     url(r'^images/$', views.ImageList.as_view()),
     url(r'^allimages/$', views.ImageAllList.as_view()),
     url(r'^debris/$', views.DebrisList.as_view()),
@@ -35,3 +36,5 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/', rest_views.obtain_auth_token)
 ]
+
+

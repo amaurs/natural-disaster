@@ -37,6 +37,7 @@ class Sample(models.Model):
     x = models.IntegerField()
     y = models.IntegerField()
     label = models.ForeignKey(Label, related_name='label')
+    town = models.ForeignKey(Town, related_name='town_sample')
 
 class Model(models.Model):
     '''

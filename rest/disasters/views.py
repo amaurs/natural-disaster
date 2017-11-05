@@ -6,7 +6,8 @@ import os
 import PIL
 from rest_framework import viewsets, generics
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import UpdateModelMixin, ListModelMixin
+from rest_framework.mixins import UpdateModelMixin, ListModelMixin, \
+    CreateModelMixin
 from rest_framework.response import Response
 import tensorflow
 
@@ -45,8 +46,6 @@ class ImageListByTown(generics.ListCreateAPIView):
     def get_queryset(self):
         return Image.objects.filter(town_id=self.kwargs['town'])
 
-    town = Town.objects.get(pk=3)
-    queryset = Image.objects.filter(town=town)
     serializer_class = ImageSerializer
     
 class ImageAllList(generics.ListCreateAPIView):
@@ -87,7 +86,50 @@ class SampleViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        
+        print kwargs
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
+
+
+    def create(self, request, *args, **kwargs):
+
+        return CreateModelMixin.create(self, request, *args, **kwargs)
+
+
+    def perform_create(self, serializer):
+        return CreateModelMixin.perform_create(self, serializer)
+
+
+    def get_success_headers(self, data):
+        return CreateModelMixin.get_success_headers(self, data)
+
     queryset = Sample.objects.all().order_by('-pk')
     serializer_class = SampleSerializer
     
+class SampleList(generics.ListCreateAPIView):
+    '''
+    This method creates a queryset filtering by town, this means
+    only images from that town will be displayed.
+    '''
+
+    queryset = Sample.objects.all()
+    serializer_class = SampleSerializer
     
+class SampleListByTown(generics.ListCreateAPIView):
+    '''
+    This method creates a queryset filtering by town, this means
+    only images from that town will be displayed.
+    '''
+
+    def get_queryset(self):
+        return Sample.objects.filter(town_id=self.kwargs['town'])
+    
+    serializer_class = SampleSerializer
+    
+class SampleDetail(generics.CreateAPIView):
+    queryset = Sample.objects.all()
+    serializer_class = SampleSerializer
