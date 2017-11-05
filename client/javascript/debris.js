@@ -85,5 +85,5 @@ $(document).ready(function(){
     selectedFeatures.on('remove', function(event) {
         selectedFeature = null;
     });
-    retrieveData("http://localhost:8000/debris/");
+    retrieveData(SERVER_URL + "/debris/");
 });

@@ -3,7 +3,7 @@ var global = {};
 function deleteFactory(pk) {
     return function deleteThumbnail() {
         $.ajax({
-            url: "http://localhost:8000/samples/" + pk + "/",
+            url: SERVER_URL + "/samples/" + pk + "/",
             type: "DELETE",
             success: function (data) {
                 console.log(data);
@@ -19,7 +19,7 @@ function deleteFactory(pk) {
 function updateFactory(pk) {
     return function updateThumbnail() {
         $.ajax({
-            url: "http://localhost:8000/samples/" + pk + "/",
+            url: SERVER_URL + "/samples/" + pk + "/",
             type: "PATCH",
             success: function (data) {
                 console.log(data);
@@ -73,7 +73,7 @@ function makeAjaxCall(urlCall, load) {
 
 $(document).ready(function(){
     var data;
-    makeAjaxCall("http://localhost:8000/samples/", true);
+    makeAjaxCall(SERVER_URL + "/samples/list/" + getTownId() + "/", true);
     $("#next").click(function(){
         if(global.currentData['next'] != null) {
             $('#images').html('');

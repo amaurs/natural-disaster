@@ -3,7 +3,6 @@ var height = 3000;
 var featureWidth = featureHeight = 322;
 var extent = [0, 0, width, height];
 var source = new ol.source.Vector({wrapX: false});
-
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
@@ -120,11 +119,11 @@ function uuidv4() {
 
 function sendInfo(uuid, url, x, y, w, h, label) {
     $.ajax({
-        url: "http://localhost:8000/samples/",
+        url: SERVER_URL + "/samples/",
         type: "POST",
         data: JSON.stringify({
             "name": uuid + ".jpg",
-            "url": "http://localhost:8081/thumb/" + uuid + ".jpg",
+            "url": IMAGES_URL + "/thumb/" + uuid + ".jpg",
             "image": {
                 "url": url
             },
@@ -134,6 +133,9 @@ function sendInfo(uuid, url, x, y, w, h, label) {
             "x": x,
             "label": {
                 "name": label
+            },
+            "town": {
+                "name": getTownName()
             }
         }),
         dataType: "json",
@@ -147,9 +149,15 @@ function sendInfo(uuid, url, x, y, w, h, label) {
     });
 }
 
+
+
+"Juchitán de Zaragoza"
+
 $(document).ready(function(){
     var data;
-    makeAjaxCall("http://localhost:8000/images/", true);
+    
+
+    makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", true);
     $("#next").click(function(){
         if (global.currentData) {
             var size = global.currentData['results'].length;
@@ -163,7 +171,7 @@ $(document).ready(function(){
             }
             loadNewImage();
         } else {
-            makeAjaxCall("http://localhost:8000/images/", false);
+            makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", false);
         }
     });
 
@@ -181,7 +189,7 @@ $(document).ready(function(){
                 console.log("First page.");
             }
         } else {
-            makeAjaxCall("http://localhost:8000/images/", false);
+            makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", false);
         }
     });
     $("#submit").click(function(){
@@ -234,7 +242,7 @@ $(document).ready(function(){
             var uuid = uuidv4();
             
             $.ajax({
-                url: "http://localhost:8000/images/"+global.currentData['results'][global.index]['pk']+"/"+x+"/"+y+"/"+h+"/"+w,
+                url: SERVER_URL + "/images/"+global.currentData['results'][global.index]['pk']+"/"+x+"/"+y+"/"+h+"/"+w,
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json",

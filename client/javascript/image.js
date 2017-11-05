@@ -76,5 +76,5 @@ $(document).ready(function(){
             vectorLayer
         ]
     });
-    retrieveData("http://localhost:8000/allimages/?limit=10000");
+    retrieveData(SERVER_URL + "/allimages/?limit=10000");
 });
