@@ -5,7 +5,8 @@ import os
 
 import PIL
 from rest_framework import viewsets, generics
-from rest_framework.mixins import UpdateModelMixin
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import UpdateModelMixin, ListModelMixin
 from rest_framework.response import Response
 import tensorflow
 
@@ -25,11 +26,25 @@ class DebrisList(generics.ListCreateAPIView):
     serializer_class = DebrisSerializer
     pagination_class = None
 
+
 class ImageList(generics.ListCreateAPIView):
     '''
     This method creates a queryset filtering by town, this means
     only images from that town will be displayed.
     '''
+
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
+    
+class ImageListByTown(generics.ListCreateAPIView):
+    '''
+    This method creates a queryset filtering by town, this means
+    only images from that town will be displayed.
+    '''
+
+    def get_queryset(self):
+        return Image.objects.filter(town_id=self.kwargs['town'])
+
     town = Town.objects.get(pk=3)
     queryset = Image.objects.filter(town=town)
     serializer_class = ImageSerializer
