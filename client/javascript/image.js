@@ -1,40 +1,29 @@
-
-var map;
+var imageMap;
 var town = 3;
-var vectorLayer;
-var vectorSource = new ol.source.Vector({});
+var vectorLayerImages;
+var vectorSourceImages = new ol.source.Vector({});
 
-function calculateCentroid(coords) {
-  let longitude = 0;
-  let latitude = 0;
-
-  for (let i = 0; i < coords.length; i++) {
-    longitude += coords[i][0];
-    latitude += coords[i][1];
-  }
-
-  return [longitude / coords.length, latitude / coords.length];
-}
 
 function townStyle(town) {
-      var style = new ol.style.Style({
+    var style = new ol.style.Style({
         image: new ol.style.Circle({
-          radius: 3,
-          fill: new ol.style.Fill({
-            color: town==3?'blue':(town==1?'red':'green')
-          })
+            radius: 3,
+            fill: new ol.style.Fill({
+                color: town==3?'blue':(town==1?'red':'green')
+            })
         })
-      });
-      return style;
+    });
+    return style;
 }
 
-function retrieveData(urlCall) {
+function retrieveDataImages(urlCall) {
     $.ajax({
         type: 'GET',
         url: urlCall, 
         success: function(result){
-            images = result['results'];
-            coords = [];
+            var images = result['results'];
+            var coords = [];
+            console.log(images);
             images.forEach(function(element) {
                 var point = new ol.geom.Point([element['lon'], element['lat']]);
                 if(element['town_id'] == town){
@@ -44,10 +33,10 @@ function retrieveData(urlCall) {
                         geometry: point
                 });
                 feature.setStyle(townStyle(element['town_id']))
-                vectorSource.addFeature(feature);
+                vectorSourceImages.addFeature(feature);
             }); 
             var center = calculateCentroid(coords);
-            map.getView().setCenter(center);
+            imageMap.getView().setCenter(center);
         },
         beforeSend : function(req) {
             req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
@@ -57,11 +46,11 @@ function retrieveData(urlCall) {
 
 $(document).ready(function(){
     var center = [-94.83657579261286, 16.47216369265396];
-    vectorLayer = new ol.layer.Vector({
-        source: vectorSource
+    vectorLayerImages = new ol.layer.Vector({
+        source: vectorSourceImages
     });
-    map = new ol.Map({
-        target: document.getElementById('map'),
+    imageMap = new ol.Map({
+        target: document.getElementById('image-map'),
         view: new ol.View({
             projection: 'EPSG:4326',
             center: center,
@@ -73,8 +62,8 @@ $(document).ready(function(){
             new ol.layer.Tile({
             source: new ol.source.OSM()
             }),
-            vectorLayer
+            vectorLayerImages
         ]
     });
-    retrieveData(SERVER_URL + "/allimages/?limit=10000");
+    retrieveDataImages(SERVER_URL + "/allimages/?limit=10000");
 });
