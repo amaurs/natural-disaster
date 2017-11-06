@@ -1,5 +1,5 @@
-var SERVER_URL = "http://192.168.15.5:8000";
-var IMAGES_URL = "http://192.168.15.5:8081";
+var SERVER_URL = "http://127.0.0.1:8000";
+var IMAGES_URL = "http://127.0.0.1:8081";
 
 function getParam(param){
   return new URLSearchParams(window.location.search).get(param);

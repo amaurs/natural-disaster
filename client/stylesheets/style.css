@@ -6,7 +6,7 @@
   background: gray;
 
 }
-.navbar ul{
+ul{
   list-style-type: none;
 }
 .navbar li{
@@ -22,6 +22,17 @@
 #container {
   width:100%;
 }
+
+#panel {
+  width:20%;
+  float:left;
+}
+
+#map-content {
+  width:80%;
+  float:right;
+}
+
 #map {
     width: 100%;
     height: 80%;
