@@ -80,9 +80,8 @@ ul{
   border: 1px solid #cccccc;
   bottom: 12px;
   left: -50px;
+  width: 256px;
 }
-
-
 
 #images {
   background-color: rgb(155,255,155);

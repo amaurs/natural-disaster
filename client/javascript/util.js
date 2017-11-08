@@ -33,6 +33,17 @@ function townStyle(town) {
     return style;
 }
 
+function getView() {
+    var center = [-94.83657579261286, 16.47216369265396];
+    return new ol.View({
+            projection: 'EPSG:4326',
+            center: center,
+            zoom: 15,
+            minZoom: 14,
+            maxZoom: 19
+        });
+}
+
 function calculateCentroid(coords) {
     var longitude = 0;
     var latitude = 0;

@@ -1,4 +1,6 @@
 var map;
+var imageMap;
+
 var vectorLayer;
 var select;
 var vectorSource = new ol.source.Vector({});
@@ -7,6 +9,9 @@ var selectedFeature;
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
+
+var vectorLayerImages;
+var vectorSourceImages = new ol.source.Vector({});
 var overlay = new ol.Overlay(({
     element: container,
     autoPan: true,
@@ -33,22 +38,37 @@ function paintDebris(result) {
     }); 
 }
 
+function paintImages(result) {
+    var images = result['results'];
+    var coords = [];
+    var town = getTownId();
+    console.log("Town id: " + town);
+    images.forEach(function(element) {
+        var point = new ol.geom.Point([element['lon'], element['lat']]);
+        if(element['town_id'] == town){
+            coords.push([element['lon'], element['lat']]);
+        }
+        var feature = new ol.Feature({
+                geometry: point
+        });
+        feature.setStyle(townStyle(element['town_id']))
+        vectorSourceImages.addFeature(feature);
+    }); 
+    var center = calculateCentroid(coords);
+    imageMap.getView().setCenter(center);
+    map.getView().setCenter(center);
+}
+
 
 $(document).ready(function(){
-    var center = [-94.83657579261286, 16.47216369265396];
+    
     vectorLayer = new ol.layer.Vector({
         source: vectorSource
     });
     map = new ol.Map({
         overlays: [overlay],
         target: document.getElementById('map'),
-        view: new ol.View({
-            projection: 'EPSG:4326',
-            center: center,
-            zoom: 15,
-            minZoom: 14,
-            maxZoom: 19
-        }),
+        view: getView(),
         layers: [
             new ol.layer.Tile({
             source: new ol.source.OSM()
@@ -75,4 +95,20 @@ $(document).ready(function(){
         selectedFeature = null;
     });
     retrieveData(SERVER_URL + "/debris/", paintDebris);
+
+
+    vectorLayerImages = new ol.layer.Vector({
+        source: vectorSourceImages
+    });
+    imageMap = new ol.Map({
+        target: document.getElementById('image-map'),
+        view: getView(),
+        layers: [
+            new ol.layer.Tile({
+            source: new ol.source.OSM()
+            }),
+            vectorLayerImages
+        ]
+    });
+    retrieveData(SERVER_URL + "/allimages/?limit=10000", paintImages);
 });
