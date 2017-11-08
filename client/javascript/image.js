@@ -4,44 +4,25 @@ var vectorLayerImages;
 var vectorSourceImages = new ol.source.Vector({});
 
 
-function townStyle(town) {
-    var style = new ol.style.Style({
-        image: new ol.style.Circle({
-            radius: 3,
-            fill: new ol.style.Fill({
-                color: town==3?'blue':(town==1?'red':'green')
-            })
-        })
-    });
-    return style;
-}
-
-function retrieveDataImages(urlCall) {
-    $.ajax({
-        type: 'GET',
-        url: urlCall, 
-        success: function(result){
-            var images = result['results'];
-            var coords = [];
-            console.log(images);
-            images.forEach(function(element) {
-                var point = new ol.geom.Point([element['lon'], element['lat']]);
-                if(element['town_id'] == town){
-                    coords.push([element['lon'], element['lat']]);
-                }
-                var feature = new ol.Feature({
-                        geometry: point
-                });
-                feature.setStyle(townStyle(element['town_id']))
-                vectorSourceImages.addFeature(feature);
-            }); 
-            var center = calculateCentroid(coords);
-            imageMap.getView().setCenter(center);
-        },
-        beforeSend : function(req) {
-            req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
-        },
-    });
+function paintImages(result) {
+    var images = result['results'];
+    var coords = [];
+    var town = getTownId();
+    console.log("Town id: " + town);
+    images.forEach(function(element) {
+        var point = new ol.geom.Point([element['lon'], element['lat']]);
+        if(element['town_id'] == town){
+            coords.push([element['lon'], element['lat']]);
+        }
+        var feature = new ol.Feature({
+                geometry: point
+        });
+        feature.setStyle(townStyle(element['town_id']))
+        vectorSourceImages.addFeature(feature);
+    }); 
+    var center = calculateCentroid(coords);
+    imageMap.getView().setCenter(center);
+    map.getView().setCenter(center);
 }
 
 $(document).ready(function(){
@@ -65,5 +46,5 @@ $(document).ready(function(){
             vectorLayerImages
         ]
     });
-    retrieveDataImages(SERVER_URL + "/allimages/?limit=10000");
+    retrieveData(SERVER_URL + "/allimages/?limit=10000", paintImages);
 });

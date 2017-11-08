@@ -14,10 +14,23 @@ function getTownId() {
 }
 
 function getTownName() {
-    var names = {1:"Unión Hidalgo",
-     2:"Juchitán de Zaragoza",
-     3:"Santa María Xadani"}
+    var names = {
+        1:"Unión Hidalgo",
+        2:"Juchitán de Zaragoza",
+        3:"Santa María Xadani"}
     return names[getTownId()];
+}
+
+function townStyle(town) {
+    var style = new ol.style.Style({
+        image: new ol.style.Circle({
+            radius: 3,
+            fill: new ol.style.Fill({
+                color: town==3?'blue':(town==1?'red':'green')
+            })
+        })
+    });
+    return style;
 }
 
 function calculateCentroid(coords) {
@@ -28,4 +41,15 @@ function calculateCentroid(coords) {
         latitude += coords[i][1];
     }
     return [longitude / coords.length, latitude / coords.length];
+}
+
+function retrieveData(urlCall, method) {
+    $.ajax({
+        type: 'GET',
+        url: urlCall, 
+        success: method,
+        beforeSend : function(req) {
+            req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
+        },
+    });
 }

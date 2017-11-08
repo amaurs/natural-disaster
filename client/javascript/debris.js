@@ -1,5 +1,3 @@
-
-
 var map;
 var vectorLayer;
 var select;
@@ -23,25 +21,16 @@ closer.onclick = function() {
   return false;
 };
 
-function retrieveData(urlCall) {
-    $.ajax({
-        type: 'GET',
-        url: urlCall, 
-        success: function(result){
-            console.log(result);
-            result.forEach(function(element) {
-                var point = new ol.geom.Point([element['lon'], element['lat']]);
-                var feature = new ol.Feature({
-                        address: element['address'],
-                        geometry: point
-                });
-                vectorSource.addFeature(feature);
-            }); 
-        },
-        beforeSend : function(req) {
-            req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
-        },
-    });
+
+function paintDebris(result) {
+    result.forEach(function(element) {
+        var point = new ol.geom.Point([element['lon'], element['lat']]);
+        var feature = new ol.Feature({
+                address: element['address'],
+                geometry: point
+        });
+        vectorSource.addFeature(feature);
+    }); 
 }
 
 
@@ -56,7 +45,7 @@ $(document).ready(function(){
         view: new ol.View({
             projection: 'EPSG:4326',
             center: center,
-            zoom: 16,
+            zoom: 15,
             minZoom: 14,
             maxZoom: 19
         }),
@@ -85,5 +74,5 @@ $(document).ready(function(){
     selectedFeatures.on('remove', function(event) {
         selectedFeature = null;
     });
-    retrieveData(SERVER_URL + "/debris/");
+    retrieveData(SERVER_URL + "/debris/", paintDebris);
 });
