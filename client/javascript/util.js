@@ -5,6 +5,10 @@ function getParam(param){
     return new URLSearchParams(window.location.search).get(param);
 }
 
+function reload() {
+    location.reload();
+}
+
 function getTownId() {
     var townId = getParam("town_id");
     if (townId == null){
@@ -54,11 +58,11 @@ function calculateCentroid(coords) {
     return [longitude / coords.length, latitude / coords.length];
 }
 
-function retrieveData(urlCall, method) {
+function retrieveData(urlCall, method, onSuccess) {
     $.ajax({
-        type: 'GET',
+        type: method,
         url: urlCall, 
-        success: method,
+        success: onSuccess,
         beforeSend : function(req) {
             req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
         },

@@ -94,7 +94,7 @@ $(document).ready(function(){
     selectedFeatures.on('remove', function(event) {
         selectedFeature = null;
     });
-    retrieveData(SERVER_URL + "/debris/", paintDebris);
+    retrieveData(SERVER_URL + "/debris/", "GET", paintDebris);
 
 
     vectorLayerImages = new ol.layer.Vector({
@@ -110,5 +110,5 @@ $(document).ready(function(){
             vectorLayerImages
         ]
     });
-    retrieveData(SERVER_URL + "/allimages/?limit=10000", paintImages);
+    retrieveData(SERVER_URL + "/allimages/?limit=10000", "GET", paintImages);
 });

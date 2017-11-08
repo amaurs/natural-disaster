@@ -193,25 +193,13 @@ $(document).ready(function(){
         }
     });
     $("#submit").click(function(){
-
-
-
         if (global.currentData) {
             var extent = polygonFeature.getGeometry().getExtent();
             console.log(extent);
-
             var coordinate = [extent[2], extent[3]]; 
-
             var controls = "<div class='controls'><button class='btn submit-button damage' id='damage-submit'>Damaged</button><button class='btn submit-button no-damage' id='no-damage-submit'>Not Damaged</button></div";
-
-
-
-
             content.innerHTML = controls;
             overlay.setPosition(coordinate);
-            
-
-
             var x = Math.round(extent[0]);
             var y = Math.round(height - (featureHeight + extent[1]));
             var w = featureWidth;
@@ -233,35 +221,5 @@ $(document).ready(function(){
             });
         }
     });
-    $("#predict").click(function(){
-        if (global.currentData) {
-            var extent = polygonFeature.getGeometry().getExtent();
-            var x = Math.round(extent[0]);
-            var y = Math.round(height - (featureHeight + extent[1]));
-            var w = featureWidth;
-            var h = featureHeight;
-            var uuid = uuidv4();
-            
-            $.ajax({
-                url: SERVER_URL + "/images/"+global.currentData['results'][global.index]['pk']+"/"+x+"/"+y+"/"+h+"/"+w,
-                type: "GET",
-                dataType: "json",
-                contentType: "application/json",
-                success: function (data) {
-                    console.log(data);
-                    //window.alert("damage: " + data['damage'] + "\nno damage:" + data['nodamage']);
-                    if(data['damage'] > .5){
-                        $("#prediction").text("Daño")
-                    } else {
-                        $("#prediction").text("No Daño")
-                    }
-                    
-                },
-                beforeSend : function(req) {
-                    req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
-                    //curl -X GET http://127.0.0.1:8000/images/780/0/0/300/300 -H 'Authorization: Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd'
-                }
-            });
-        }
-    });
+
 });

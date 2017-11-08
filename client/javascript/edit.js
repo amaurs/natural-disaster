@@ -1,35 +1,13 @@
 var global = {};
 
+
+
 function deleteFactory(pk) {
-    return function deleteThumbnail() {
-        $.ajax({
-            url: SERVER_URL + "/samples/" + pk + "/",
-            type: "DELETE",
-            success: function (data) {
-                console.log(data);
-                location.reload();
-            },
-            beforeSend : function(req) {
-                req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
-            }
-        });
-    }
+    return function(){retrieveData(SERVER_URL + "/samples/" + pk + "/", "DELETE", reload);};
 }
 
 function updateFactory(pk) {
-    return function updateThumbnail() {
-        $.ajax({
-            url: SERVER_URL + "/samples/" + pk + "/",
-            type: "PATCH",
-            success: function (data) {
-                console.log(data);
-                location.reload();
-            },
-            beforeSend : function(req) {
-                req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
-            }
-        });
-    }
+    return function(){retrieveData(SERVER_URL + "/samples/" + pk + "/", "PATCH", reload);};
 }
 
 function loadNewImage() {
@@ -52,19 +30,23 @@ function loadNewImage() {
     }
 }
 
+function paintSamplesFactory(load) {
+    return function paintSamples(result) {
+        global.currentData = result;
+        
+        //Needs to be checked, this is clearly a hack.
+        if(load) { 
+            global.index = 0;
+            loadNewImage();
+        }
+    }
+}
+
 function makeAjaxCall(urlCall, load) {
     $.ajax({
         type: 'GET',
         url: urlCall, 
-        success: function(result){
-            global.currentData = result;
-            global.currentUrl = urlCall;
-            //Needs to be checked, this is clearly a hack.
-            if(load) { 
-                global.index = 0;
-                loadNewImage();
-            }
-        },
+        success: paintSamplesFactory(load),
         beforeSend : function(req) {
             req.setRequestHeader('Authorization',  'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
         },
@@ -74,17 +56,21 @@ function makeAjaxCall(urlCall, load) {
 $(document).ready(function(){
     var data;
     $("#title").text("Edit " + getTownName());
-    makeAjaxCall(SERVER_URL + "/samples/list/" + getTownId() + "/", true);
+    var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/";
+    global.currentUrl = urlCall;
+    retrieveData(urlCall, "GET", paintSamplesFactory(true))
     $("#next").click(function(){
         if(global.currentData['next'] != null) {
             $('#images').html('');
-            makeAjaxCall(global.currentData['next'], true);
+            urlCall = global.currentData['next'];
+            retrieveData(urlCall, "GET", paintSamplesFactory(true));
         }
     });
     $("#prev").click(function(){
         if(global.currentData['previous'] != null) {
             $('#images').html('');
-            makeAjaxCall(global.currentData['previous'], true);
+            urlCall = global.currentData['next'];
+            retrieveData(urlCall, "GET", paintSamplesFactory(true));
         }
     });
 });
