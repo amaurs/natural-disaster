@@ -55,6 +55,9 @@ function paintImages(result) {
         vectorSourceImages.addFeature(feature);
     }); 
     var center = calculateCentroid(coords);
+    console.log("Size of element: " + coords.length);
+    
+    $("#number-images").html("<h1>" + coords.length + "</h1>");
     imageMap.getView().setCenter(center);
     map.getView().setCenter(center);
 }
@@ -95,6 +98,29 @@ $(document).ready(function(){
         selectedFeature = null;
     });
     retrieveData(SERVER_URL + "/debris/", "GET", paintDebris);
+
+
+
+    var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/";
+    retrieveData(urlCall, "GET", function(result){
+        console.log("INSIDE");
+        console.log(result['results']);
+        var damage = 0;
+        var noDamage = 0;
+
+        result['results'].forEach(function(element){
+            if(element['label']['name'] == 'Ausente'){
+                damage++;
+            } else if(element['label']['name'] == 'Presente'){
+                noDamage++;
+            }
+        });
+        $("#number-damaged").html("<h1>" + damage + "</h1>");
+        $("#number-no-damaged").html("<h1>" + noDamage + "</h1>");
+
+    });
+
+
 
 
     vectorLayerImages = new ol.layer.Vector({

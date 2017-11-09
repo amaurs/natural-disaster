@@ -58,7 +58,7 @@ $(document).ready(function(){
     $("#title").text("Edit " + getTownName());
     var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/";
     global.currentUrl = urlCall;
-    retrieveData(urlCall, "GET", paintSamplesFactory(true))
+    retrieveData(urlCall, "GET", paintSamplesFactory(true));
     $("#next").click(function(){
         if(global.currentData['next'] != null) {
             $('#images').html('');

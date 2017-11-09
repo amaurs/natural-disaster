@@ -118,3 +118,25 @@ ul{
   width: 110px;
   margin:1px;
 }
+
+
+.card-info {
+  float:left;
+  width: 250px;
+  height: 550px;
+} 
+
+
+.card-data {
+  background-color: yellow;
+  height: 300px;
+  font-size: 50px;
+}
+
+.card-label {
+  background-color: blue;
+  height: 50px;
+}
+
+
+
