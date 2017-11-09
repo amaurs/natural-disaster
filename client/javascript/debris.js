@@ -101,17 +101,18 @@ $(document).ready(function(){
 
 
 
-    var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/";
+    var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/?limit=10000";
+    console.log(urlCall);
     retrieveData(urlCall, "GET", function(result){
-        console.log("INSIDE");
+       
         console.log(result['results']);
         var damage = 0;
         var noDamage = 0;
 
         result['results'].forEach(function(element){
-            if(element['label']['name'] == 'Ausente'){
+            if(element['label']['name'] == 'Presente'){
                 damage++;
-            } else if(element['label']['name'] == 'Presente'){
+            } else if(element['label']['name'] == 'Ausente'){
                 noDamage++;
             }
         });

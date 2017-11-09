@@ -19,7 +19,7 @@ ul{
   margin:5px;
 }
 
-#container {
+.container {
   width:100%;
 }
 
@@ -100,6 +100,9 @@ ul{
 .damage {
   background-color: rgb(255,155,155);
 }
+.neutral {
+  background-color: rgb(155,155,155);
+}
 .card {
   float:left;
   width: 250px;
@@ -124,13 +127,16 @@ ul{
   float:left;
   width: 250px;
   height: 550px;
+  color: white;
 } 
 
 
 .card-data {
-  background-color: yellow;
   height: 300px;
-  font-size: 50px;
+  
+}
+.card-data h1 {
+  font-size: 80px;
 }
 
 .card-label {
