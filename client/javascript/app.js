@@ -151,75 +151,89 @@ function sendInfo(uuid, url, name, x, y, w, h, label) {
     });
 }
 
+function previous() {
+    if (global.currentData) {
+        var size = global.currentData['results'].length;
+        if(global.index - 1 >= 0){
+            global.index = global.index - 1;
+            loadNewImage();
+        } else if(global.currentData['previous'] != null){
+
+            makeAjaxCall(global.currentData['previous'], false);
+            global.index = global.currentData['results'].length - 1;
+        } else {
+            console.log("First page.");
+        }
+    } else {
+        makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", false);
+    }
+}
+
+function next() {
+    if (global.currentData) {
+        var size = global.currentData['results'].length;
+        if(global.index + 1 < size){
+            global.index = global.index + 1;
+        } else if(global.currentData['next'] != null){
+            makeAjaxCall(global.currentData['next'], false);
+            global.index = 0;
+        } else {
+            console.log("Last page.");
+        }
+        loadNewImage();
+    } else {
+        makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", false);
+    }
+}
+
+function submit() {
+    if (global.currentData) {
+        var extent = polygonFeature.getGeometry().getExtent();
+        console.log(extent);
+        var coordinate = [extent[2], extent[3]]; 
+        var controls = "<div class='controls'><button class='btn submit-button damage' id='damage-submit'>Damaged</button><button class='btn submit-button no-damage' id='no-damage-submit'>Not Damaged</button></div";
+        content.innerHTML = controls;
+        overlay.setPosition(coordinate);
+        var x = Math.round(extent[0]);
+        var y = Math.round(height - (featureHeight + extent[1]));
+        var w = featureWidth;
+        var h = featureHeight;
+        var uuid = uuidv4();
+        var url = global.currentData['results'][global.index]['url'];
+        var name = global.currentData['results'][global.index]['name'];
+        var label = $("#label :selected").text();
+
+
+        $("#damage-submit").click(function(){
+            sendInfo(uuid, url, name, x, y, w, h, 'Presente');
+            closePopup();
+        });
+
+        $("#no-damage-submit").click(function(){
+            sendInfo(uuid, url, name, x, y, w, h, 'Ausente');
+            closePopup();
+        });
+    }
+}
+
+$(document).keydown(function(e) {
+    if(e.which == 13) {
+        submit();
+    }
+    if(e.which == 37) {
+        previous();
+    }
+    if(e.which == 39) {
+        next();
+    }
+});
 
 $(document).ready(function(){
     var data;
-    
     $("#title").text("Tag " + getTownName());
-
     makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", true);
-    $("#next").click(function(){
-        if (global.currentData) {
-            var size = global.currentData['results'].length;
-            if(global.index + 1 < size){
-                global.index = global.index + 1;
-            } else if(global.currentData['next'] != null){
-                makeAjaxCall(global.currentData['next'], false);
-                global.index = 0;
-            } else {
-                console.log("Last page.");
-            }
-            loadNewImage();
-        } else {
-            makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", false);
-        }
-    });
-
-    $("#prev").click(function(){
-        if (global.currentData) {
-            var size = global.currentData['results'].length;
-            if(global.index - 1 >= 0){
-                global.index = global.index - 1;
-                loadNewImage();
-            } else if(global.currentData['previous'] != null){
-
-                makeAjaxCall(global.currentData['previous'], false);
-                global.index = global.currentData['results'].length - 1;
-            } else {
-                console.log("First page.");
-            }
-        } else {
-            makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", false);
-        }
-    });
-    $("#submit").click(function(){
-        if (global.currentData) {
-            var extent = polygonFeature.getGeometry().getExtent();
-            console.log(extent);
-            var coordinate = [extent[2], extent[3]]; 
-            var controls = "<div class='controls'><button class='btn submit-button damage' id='damage-submit'>Damaged</button><button class='btn submit-button no-damage' id='no-damage-submit'>Not Damaged</button></div";
-            content.innerHTML = controls;
-            overlay.setPosition(coordinate);
-            var x = Math.round(extent[0]);
-            var y = Math.round(height - (featureHeight + extent[1]));
-            var w = featureWidth;
-            var h = featureHeight;
-            var uuid = uuidv4();
-            var url = global.currentData['results'][global.index]['url'];
-            var name = global.currentData['results'][global.index]['name'];
-            var label = $("#label :selected").text();
-
-
-            $("#damage-submit").click(function(){
-                sendInfo(uuid, url, name, x, y, w, h, 'Presente');
-                closePopup();
-            });
-
-            $("#no-damage-submit").click(function(){
-                sendInfo(uuid, url, name, x, y, w, h, 'Ausente');
-                closePopup();
-            });
-        }
-    });
-
+    $("#next").click(next);
+    $("#prev").click(previous);
+    $("#submit").click(submit);
 });
+
