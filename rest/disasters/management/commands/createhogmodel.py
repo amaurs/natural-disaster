@@ -43,8 +43,6 @@ def get_test_set():
     
     test_no_damage_list = get_samples_by_town_and_label('Unión Hidalgo', 'Ausente') + \
                             get_samples_by_town_and_label('Santa María Xadani', 'Ausente')
-                         
-
     result = {}
     
     result['damage'] = {'testing' : test_damage_list}
@@ -68,6 +66,9 @@ def get_X_y(image_lists, label, method='hog'):
     X = numpy.array(feature_array)
     y = pandas.factorize(target_array)[0]
     return X, y
+
+
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         image_lists = create_image_lists_from_database('Juchitán de Zaragoza', ['damage','nodamage'], 60, 0)

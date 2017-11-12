@@ -79,7 +79,7 @@ class ImageDetail(generics.RetrieveUpdateDestroyAPIView):
                         y + h)).save(predict_path)    
         
         return Response(simple_predict(predict_path))
-    queryset = Image.objects.all()
+    queryset = Image.objects.all().order_by('-pk')
     serializer_class = ImageSerializer
     
 class SampleViewSet(viewsets.ModelViewSet):

@@ -41,6 +41,43 @@ def get_query_label(label_name):
     dictionary = {'damage':'Presente', 'nodamage':'Ausente'}
     return dictionary[label_name]
 
+
+def create_image_list_cross_town(training_towns, test_towns, label_name, validation_percentage, query_size, max_num_images_per_class=134217727):
+    
+    training_images = []
+    testing_images = []
+    validation_images = []
+    
+    query_size_by_town = int(query_size / 4)
+    
+    label_id = Label.objects.get(name=label_name)
+    
+    
+    for test_town in test_towns:
+        for town in Sample.objects.filter(town_id=test_town, label=label_id):
+            testing_images.append(town.name)
+            
+    for training_town in training_towns:
+        for town in Sample.objects.filter(town_id=training_town, label=label_id)[:query_size_by_town]:
+            image_name = town.name
+            name_hashed = hashlib.sha1(compat.as_bytes(image_name)).hexdigest()
+            percentage_hash = ((int(name_hashed, 16) %
+                                (max_num_images_per_class + 1)) *
+                               (100.0 / max_num_images_per_class))
+            if percentage_hash < validation_percentage:
+                validation_images.append(image_name)
+            else:
+                training_images.append(image_name)
+    return {
+            'dir':label_name,
+            'training': training_images,
+            'training_size': len(training_images),
+            'testing': testing_images,
+            'testing_size': len(testing_images),
+            'validation': validation_images,
+            'validation_size': len(validation_images)
+            }
+
 def create_image_list_from_database(town_name, label_name, testing_percentage, validation_percentage, max_num_images_per_class=134217727):
     
     
@@ -78,6 +115,15 @@ def create_image_lists_from_database(town_name, label_names, testing_percentage,
     result = {}
     for label in label_names:
         result[label] = create_image_list_from_database(town_name, get_query_label(label), testing_percentage, validation_percentage) 
+
+    return result
+
+
+def create_image_lists_from_database_cross(training_towns, testing_towns, label_names, validation_percentage, query_size):
+    
+    result = {}
+    for label in label_names:
+        result[label] = create_image_list_cross_town(training_towns, testing_towns, get_query_label(label), validation_percentage, query_size) 
 
     return result
 
