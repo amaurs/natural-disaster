@@ -56,7 +56,7 @@ function makeAjaxCall(urlCall, load) {
 $(document).ready(function(){
     var data;
     $("#title").text("Edit " + getTownName());
-    var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/";
+    var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/?limit=10000";
     global.currentUrl = urlCall;
     retrieveData(urlCall, "GET", paintSamplesFactory(true));
     $("#next").click(function(){
