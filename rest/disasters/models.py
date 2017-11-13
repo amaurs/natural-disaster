@@ -88,22 +88,10 @@ def get_samples_by_town(town):
         result = cursor.fetchall()
     return [row[0] for row in result]
 
-def get_samples_by_town_and_label(town, label):
+def get_samples_by_town_and_label(label):
     
-    with connection.cursor() as cursor:
-        cursor.execute('SELECT s.name FROM disasters_sample AS s, \
-                                           disasters_image AS i, \
-                                           disasters_town AS t, \
-                                           disasters_label AS l \
-                                                       WHERE s.image_id=i.id \
-                                                       AND i.town_id=t.id \
-                                                       AND s.label_id=l.id \
-                                                       AND t.name=%s \
-                                                       AND l.name=%s', [town, label])
-        
-        
-        result = cursor.fetchall()
-    return [row[0] for row in result]
+    label_obj = Label.objects.get(name=label)
+    return [row.name for row in Sample.objects.filter(label=label_obj)]
 
 def get_cross_by_town_and_label(town, label):
     with connection.cursor() as cursor:

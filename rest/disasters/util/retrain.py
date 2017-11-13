@@ -78,11 +78,11 @@ def create_image_list_cross_town(training_towns, test_towns, label_name, validat
             'validation_size': len(validation_images)
             }
 
-def create_image_list_from_database(town_name, label_name, testing_percentage, validation_percentage, max_num_images_per_class=134217727):
+def create_image_list_from_database(label_name, testing_percentage, validation_percentage, max_num_images_per_class=134217727):
     
     
     
-    images = get_samples_by_town_and_label(town_name, label_name)
+    images = get_samples_by_town_and_label(label_name)
         
         
     training_images = []
@@ -110,11 +110,11 @@ def create_image_list_from_database(town_name, label_name, testing_percentage, v
             }
     
 
-def create_image_lists_from_database(town_name, label_names, testing_percentage, validation_percentage):
+def create_image_lists_from_database(label_names, testing_percentage, validation_percentage):
     
     result = {}
     for label in label_names:
-        result[label] = create_image_list_from_database(town_name, get_query_label(label), testing_percentage, validation_percentage) 
+        result[label] = create_image_list_from_database(get_query_label(label), testing_percentage, validation_percentage) 
 
     return result
 

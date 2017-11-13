@@ -23,10 +23,10 @@ from rest.settings import TEMP_FOLDER
 
 
 OVERLAP_THRESHOLD = 0.1
-DECISION_THRESHOLD = 0.95
+DECISION_THRESHOLD = 0.699293
 LABEL_LINES = ['nodamage','damage']
 
-def apply_prediction_on_raster(filepath, town_name):
+def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
     '''
     This method opens an image from a raster file using the rasterio package.
     '''
@@ -44,7 +44,7 @@ def apply_prediction_on_raster(filepath, town_name):
         projection = src.crs.to_dict()['init']
         geotransform = src.transform
 
-    no_overlap_boxes, scores = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299)
+    no_overlap_boxes, scores = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299, model_path, threshold)
     original = Proj(init=projection)    
     target = Proj(init='epsg:4326')
     world_boxes = {'latlon':[],'world':[],'score':[], 'address':[]}
@@ -58,7 +58,7 @@ def apply_prediction_on_raster(filepath, town_name):
         world_boxes['address'].append(address_from_lat_lon(lat_lon[1], lat_lon[0]))
     shape_path = '%s/%s.shp' % (TEMP_FOLDER, get_basename(filepath))
     list_to_shape(shape_path, world_boxes, int(projection.split(':')[1]))
-    list_to_database(world_boxes, town_name)
+    list_to_database(world_boxes, town_id)
 
     
 def apply_prediction_on_image(filepath):
@@ -92,12 +92,12 @@ def apply_prediction_on_image(filepath):
     cv2.imwrite(image_path, cv2_image_array)
         
     
-def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizontal_window):
+def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizontal_window, model_path, threshold):
     
     horizontal_step = vertical_step = 229
     total = len(range(0, height, vertical_step)) * len(range(0, width, horizontal_step))
     processed = 0
-    tensor_model = get_tensor_model()
+    tensor_model = get_tensor_model_by_path(model_path)
     boxes = []
     scores = []
     for y in range(0, height, vertical_step):
@@ -119,7 +119,7 @@ def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizonta
                     score = predictions[0][node_id]
                     result[human_string] = score
                     
-                if result[LABEL_LINES[1]] > DECISION_THRESHOLD:
+                if result[LABEL_LINES[1]] > threshold:
                     scores.append(result[LABEL_LINES[1]])
                     boxes.append(numpy.array([x,y,x + horizontal_window, y + vertical_window]))
                 
@@ -135,6 +135,10 @@ def get_tensor_model():
     models = Model.objects.all().order_by('-accuracy')
     tensor_model = TensorModel(models[0].path)
     return tensor_model
+
+def get_tensor_model_by_path(path):
+    tensor_model = TensorModel(path)
+    return tensor_model
     
 def list_to_shape(path, points, epsg):
     '''
@@ -149,11 +153,11 @@ def list_to_shape(path, points, epsg):
                                                                    'address':points['address'][i]}
                           
                           })
-def list_to_database(points, town_name):
+def list_to_database(points, town_id):
     '''
     Persists the points to database.
     '''
-    town = Town.objects.get(name=town_name)
+    town = Town.objects.get(pk=town_id)
     model = Model.objects.all().order_by('-accuracy').first()
     for i in range(len(points['world'])):
         score = points['score'][i]

@@ -14,15 +14,20 @@ from shutil import copyfile
 import uuid
 
 from django.core.management.base import BaseCommand
+from matplotlib.pyplot import savefig
 import numpy
+from rasterio.rio.insp import plt
 from skimage.feature import hog
+from sklearn.metrics.ranking import roc_curve, auc
 import tensorflow
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
 
-from rest.disasters.management.commands.createhogmodel import get_test_set
+from rest.disasters.management.commands.createhogmodel import get_test_set, \
+    classic_model
 from rest.disasters.models import Model
 from rest.disasters.util import make_dir
+from rest.disasters.util.predict import TensorModel
 from rest.disasters.util.retrain import create_image_lists_from_database, \
     maybe_download_and_extract, create_inception_graph, \
     cache_bottlenecks, add_final_training_ops, add_evaluation_step, \
@@ -30,6 +35,11 @@ from rest.disasters.util.retrain import create_image_lists_from_database, \
     create_image_lists_from_database_cross
 from rest.settings import MODEL_FOLDER, TEMP_FOLDER, BOTTLENECK_FOLDER
 
+
+COLOR_3 = '#e66101'
+COLOR_4 = '#fdb863'
+COLOR_5 = '#b2abd2'
+COLOR_6 = '#5e3c99'
 
 def random_model(ground_truth):
     
@@ -57,12 +67,12 @@ def tensorflow_model(image_dir, image_lists):
     
     final_tensor_name = 'final_result'
     
-    how_many_training_steps = 500
-    train_batch_size = 5
+    how_many_training_steps = 1000
+    train_batch_size = 10
     summaries_dir = TEMP_FOLDER
-    validation_batch_size = 5
+    validation_batch_size = 10
     eval_step_interval = 20
-    test_batch_size = 100
+    test_batch_size = 200
     output_graph = 'damage_graph.pb'
     output_labels = 'damage_labels.txt'
     
@@ -141,10 +151,55 @@ def tensorflow_model(image_dir, image_lists):
                                 'testing', bottleneck_dir,
                                 image_dir, jpeg_data_tensor,
                                 bottleneck_tensor))
-    test_accuracy, predictions = session.run(
-            [evaluation_step, prediction],
+    test_accuracy, predictions, scores = session.run(
+            [evaluation_step, prediction, session.graph.get_tensor_by_name('final_result:0')],
             feed_dict={bottleneck_input: test_bottlenecks,
              ground_truth_input: test_ground_truth})
+    
+    print test_filenames[:5]
+    print predictions
+    print scores[:, 1]
+    
+    
+    y_test = map(numpy.argmax,test_ground_truth)
+    
+    print y_test
+    
+    
+    fpr, tpr, _ = roc_curve(y_test, scores[:, 1])
+    roc_auc = auc(fpr, tpr)
+        
+    plt.figure()
+    lw = 2
+    plt.plot(fpr, tpr, color=COLOR_4,
+                 lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)
+    
+    for i in range(len(tpr)):
+        print "tpr: %s fpr: %s thres: %s" % (tpr[i],fpr[i],_[i])
+    #plt.annotate(_[40], (plt.annotate(_[20], (fpr[20],tpr[20])),tpr[40]))
+    #plt.annotate(_[35], (fpr[35],tpr[35]))
+    #plt.annotate(_[30], (fpr[30],tpr[30]))
+    
+    plt.plot([0, 1], [0, 1], color=COLOR_6, lw=lw, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    #plt.title('Receiver operating characteristic example')
+    plt.legend(loc="lower right")
+    savefig('roc.png')
+    
+    
+    
+    correct = 0
+    for i in range(len(predictions)):
+        if numpy.argmax(test_ground_truth[i]) == predictions[i]:
+            correct = correct + 1
+    
+    acc = 1.0 * correct / len(predictions)
+    print acc
+    print test_accuracy
+    print len(predictions)
     
     
     print('Final test accuracy = %.1f%% (N=%d)' % (
@@ -169,18 +224,137 @@ def tensorflow_model(image_dir, image_lists):
                          original_model=output_graph) 
     model_object.save()
     copyfile(output_graph, new_path)
-    return float(test_accuracy)
-
+    
+    session.close()
+    return acc, new_path
 class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        image_lists = create_image_lists_from_database_cross([1,2], [3], ['damage','nodamage'], 30, 50)
+        
+        
+        sizes = [20, 50, 100, 150, 200]
+        
+        means_acc = []
+        means_std_acc = []
+        hog_acc = []
+        
+        size = 200
+        
         image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'
-        accurracy = tensorflow_model(image_dir, image_lists)
+        
+        image_lists = create_image_lists_from_database(['damage','nodamage'], testing_percentage=33, validation_percentage=22)
+        
+        print "testing %s" % len(image_lists['damage']['testing'])
+        print "validation %s" % len(image_lists['damage']['validation'])
+        print "training %s" % len(image_lists['damage']['training'])
+        print "testing %s" % len(image_lists['nodamage']['testing'])
+        print "validation %s" % len(image_lists['nodamage']['validation'])
+        print "training %s" % len(image_lists['nodamage']['training'])
+        
+
+        
+        train_towns = [2,3]
+        test_towns = [1]
         
         
-        print 'Tensorflow accuracy: %s' % float(accurracy)
+        
+        accuracy, model_path = tensorflow_model(image_dir, image_lists)
+        
+        
+        '''
+        model = TensorModel(model_path)
+        
+        y_score = []
+        y_test = []
+        
+        for tag in ['damage','nodamage']:
+            for image in image_lists[tag]['testing']:
+                image_path = '%s/%s' % (image_dir,image)
+                print image_path
+                y_score.append(model.predict_from_file(image_path))
+                if 'damage' == tag:
+                    y_test.append(1)
+                else:
+                    y_test.append(0)
+                    
+        fpr, tpr, _ = roc_curve(y_test, y_score)
+        roc_auc = auc(fpr, tpr)
+        
+        plt.figure()
+        lw = 2
+        plt.plot(fpr, tpr, color='darkorange',
+                 lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[2])
+        plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver operating characteristic example')
+        plt.legend(loc="lower right")
+        savefig('roc.png')
+                
+        '''
+        
+        
+            
+       
+            
+        #with open('accuracies-all.txt', 'a') as myfile:
+        #    myfile.write('%s\n' % tensorflow_model(image_dir, image_lists))
+        #    #tensorflow_acc.append(tensorflow_model(image_dir, image_lists)) 
+        
+        
+        
+        '''
+        for size in sizes:
+            print 'Size: %s' % size
+            image_lists = create_image_lists_from_database_cross(train_towns, test_towns, ['damage','nodamage'], 30, size)
+            
+            #image_lists = create_image_lists_from_database(['damage','nodamage'], testing_percentage=33, validation_percentage=22, size=size)
+            #image_lists_helper = create_image_lists_from_database_cross(train_towns, test_towns, ['damage','nodamage'], 30, size)
+          
+            #image_lists['damage']['testing'] = image_lists_helper['damage']['testing']
+            #image_lists['nodamage']['testing'] = image_lists_helper['nodamage']['testing']
+            print "testing %s" % len(image_lists['damage']['testing'])
+            print "validation %s" % len(image_lists['damage']['validation'])
+            print "training %s" % len(image_lists['damage']['training'])
+            print "testing %s" % len(image_lists['nodamage']['testing'])
+            print "validation %s" % len(image_lists['nodamage']['validation'])
+            print "training %s" % len(image_lists['nodamage']['training'])
+            
+            #tensorflow_acc.append(tensorflow_model(image_dir, image_lists)) 
+            means_acc.append(classic_model(image_dir, image_lists, 'means'))
+            means_std_acc.append(classic_model(image_dir, image_lists, 'meanstd'))
+            hog_acc.append(classic_model(image_dir, image_lists, 'hog'))
+            
+        #all
+        #tensorflow_acc = [0.845, 0.795,0.915,0.955,0.95]
+        #1,2,3
+        #tensorflow_acc =[0.825,0.845,0.78,0.73,0.79]
+        #1,3,2
+        #tensorflow_acc =[0.75,0.885,0.915,0.91,0.93]
+        #2,3,1
+        tensorflow_acc =[0.755,0.78,0.845,0.845,0.87]
+        
+        
+        plt.scatter(sizes, tensorflow_acc, c=COLOR_3, label='tensorflow')
+        plt.plot(sizes, tensorflow_acc, c=COLOR_3)
+        plt.scatter(sizes, means_acc, c=COLOR_4, label='means')
+        plt.plot(sizes, means_acc, c=COLOR_4)
+        plt.scatter(sizes, means_std_acc, c=COLOR_5, label='meanstd')
+        plt.plot(sizes, means_std_acc, c=COLOR_5)
+        plt.scatter(sizes, hog_acc, c=COLOR_6, label='hog')
+        plt.plot(sizes, hog_acc, c=COLOR_6)
+        plt.legend(bbox_to_anchor=(0,1.02,1,1.02), loc="lower left", shadow=True, mode='expand', ncol=4)
+        plt.ylabel('Accuracy')
+        plt.xlabel('Training Set Size')
+        savefig('accuracies-%s-%s.png' % (train_towns, test_towns))
+        #savefig('accuracies-all.png')
+        '''
+        
+        
+
         
         
        
