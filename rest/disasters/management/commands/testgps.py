@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Created on Oct 17, 2017
 
@@ -14,6 +16,8 @@ from skimage import io
 from sklearn.manifold import TSNE
 
 import matplotlib.pyplot as plt
+from rest.disasters.management.commands.createmodel import COLOR_3, COLOR_4, \
+    COLOR_6
 from rest.disasters.models import Image, get_images_by_town_id
 from rest.settings import IMAGE_FOLDER
 
@@ -31,15 +35,20 @@ class Command(BaseCommand):
         #image_path = '%s/%s' % (IMAGE_FOLDER, '25460d51-6b6e-4417-a728-615be7d3da0b.jpg')
         #print extract_mean_std_feature_vector(image_path)
         
-        colors = {1:'r',2:'g',3:'b'}
+        colors = {1:COLOR_3,2:COLOR_6,3:COLOR_4}
+        labels = {1:'Union Hidalgo', 2:'Juchitan de Zaragoza', 3:'Santa Maria Xadani'}
+        towns_x = {1:[], 2:[], 3:[]}
+        towns_y = {1:[], 2:[], 3:[]}
         feature_array = []
         towns = []
+        cont = 0
         for town in range(1,4):
             for image in get_images_by_town_id(town):
-                print image
                 image_path = '%s/%s' % (IMAGE_FOLDER, image)
                 feature_array.append(extract_mean_std_feature_vector(image_path))
                 towns.append(town)
+                cont = cont + 1
+                print cont 
         tsne = TSNE(n_components=2, init='random', verbose=1,
                          random_state=0, perplexity=40, n_iter=300)
         
@@ -47,8 +56,15 @@ class Command(BaseCommand):
         result = tsne.fit_transform(X)
         
         for i in range(len(result)):
-            plt.scatter(result[i][0], result[i][1], c=colors[towns[i]], alpha=0.5)
-        savefig('t-sne.png')
+            towns_x[towns[i]].append(result[i][0])
+            towns_y[towns[i]].append(result[i][1])
+        plt.scatter(towns_x[1],towns_y[1], c=colors[1], alpha=0.3, label=labels[1])
+        plt.scatter(towns_x[2],towns_y[2], c=colors[2], alpha=0.3, label=labels[2])
+        plt.scatter(towns_x[3],towns_y[3], c=colors[3], alpha=0.3, label=labels[3])
+    
+        #plt.title('t-SNE embedding of the images')
+        plt.legend(loc="lower left", shadow=True)
+        savefig('t-sne-bis.png')
         
         
         

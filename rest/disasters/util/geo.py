@@ -48,6 +48,7 @@ def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
     original = Proj(init=projection)    
     target = Proj(init='epsg:4326')
     world_boxes = {'latlon':[],'world':[],'score':[], 'address':[]}
+    print 'About to get centers'
     for i in range(len(no_overlap_boxes)):
         point = get_box_center(no_overlap_boxes[i])
         point_world = pixel_to_world(point[0], point[1], geotransform)
@@ -58,7 +59,7 @@ def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
         world_boxes['address'].append(address_from_lat_lon(lat_lon[1], lat_lon[0]))
     shape_path = '%s/%s.shp' % (TEMP_FOLDER, get_basename(filepath))
     list_to_shape(shape_path, world_boxes, int(projection.split(':')[1]))
-    list_to_database(world_boxes, town_id)
+    list_to_database(world_boxes, town_id, model_path, threshold)
 
     
 def apply_prediction_on_image(filepath):
@@ -127,7 +128,7 @@ def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizonta
                     progress = (processed * 1.0 / total) * 100.0
                     sys.stdout.write('\rProgress %.1f%%' % progress)
                     sys.stdout.flush()
-    print ''
+    print 'About to calculate nom max suppression fast.'
     no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), OVERLAP_THRESHOLD)
     return no_overlap_boxes, scores
 
@@ -136,8 +137,11 @@ def get_tensor_model():
     tensor_model = TensorModel(models[0].path)
     return tensor_model
 
+def get_model_by_path(path):
+    return Model.objects.get(path=path)
 def get_tensor_model_by_path(path):
-    tensor_model = TensorModel(path)
+    model = get_model_by_path(path)
+    tensor_model = TensorModel(model.path)
     return tensor_model
     
 def list_to_shape(path, points, epsg):
@@ -153,12 +157,12 @@ def list_to_shape(path, points, epsg):
                                                                    'address':points['address'][i]}
                           
                           })
-def list_to_database(points, town_id):
+def list_to_database(points, town_id, model_path, threshold):
     '''
     Persists the points to database.
     '''
     town = Town.objects.get(pk=town_id)
-    model = Model.objects.all().order_by('-accuracy').first()
+    model = get_model_by_path(model_path)
     for i in range(len(points['world'])):
         score = points['score'][i]
         lon = points['latlon'][i][0]
@@ -168,7 +172,7 @@ def list_to_database(points, town_id):
                         lon = lon,
                         town = town,
                         address = address,
-                        threshold = DECISION_THRESHOLD,
+                        threshold = threshold,
                         model = model,
                         score = score)
         debris.save()
