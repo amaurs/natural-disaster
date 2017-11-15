@@ -13,6 +13,8 @@ from fiona.crs import from_epsg
 import numpy
 from pyproj import Proj, transform
 import rasterio
+import requests
+from requests.exceptions import ReadTimeout
 from shapely.geometry import Point, mapping
 from skimage.io import imread
 
@@ -48,6 +50,7 @@ def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
     original = Proj(init=projection)    
     target = Proj(init='epsg:4326')
     world_boxes = {'latlon':[],'world':[],'score':[], 'address':[]}
+    print len(no_overlap_boxes)
     print 'About to get centers'
     for i in range(len(no_overlap_boxes)):
         point = get_box_center(no_overlap_boxes[i])
@@ -58,7 +61,9 @@ def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
         world_boxes['score'].append(scores[i])
         world_boxes['address'].append(address_from_lat_lon(lat_lon[1], lat_lon[0]))
     shape_path = '%s/%s.shp' % (TEMP_FOLDER, get_basename(filepath))
+    print 'About to write shape'
     list_to_shape(shape_path, world_boxes, int(projection.split(':')[1]))
+    print 'About to write in database'
     list_to_database(world_boxes, town_id, model_path, threshold)
 
     
@@ -95,7 +100,7 @@ def apply_prediction_on_image(filepath):
     
 def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizontal_window, model_path, threshold):
     
-    horizontal_step = vertical_step = 229
+    horizontal_step = vertical_step = 219
     total = len(range(0, height, vertical_step)) * len(range(0, width, horizontal_step))
     processed = 0
     tensor_model = get_tensor_model_by_path(model_path)
@@ -195,7 +200,13 @@ def address_from_lat_lon(lat, lon):
     longitude coordinates.
     '''
     url = 'https://maps.googleapis.com/maps/api/geocode/json?&latlng=%s,%s' % (lat, lon)
-    data = json.load(urllib2.urlopen(url))
+    print url
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
+    except ReadTimeout:
+        data = {'results':[]}
+        print 'Read timeout.'
     address = ''
     if len(data['results']) > 0:
         address = data['results'][0]['formatted_address']
