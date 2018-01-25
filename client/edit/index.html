@@ -1,45 +1,68 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="https://openlayers.org/en/v4.3.4/css/ol.css" type="text/css">
     <link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" /> 
     <title>Natural Disaster</title>
   </head>
   <body>
-    <div id="wrapper">
-      <div class="navbar">
-          <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/tag/">Tag</a></li>
-            <li><a href="/edit/">Edit</a></li>
-          <ul>
-      </div>
-      <div id="container">
-        <div id="panel">
-          <ul>
-            <li><a href="/edit/?town_id=1">Unión Hidalgo</a></li>
-            <li><a href="/edit/?town_id=2">Juchitán de Zaragoza</a></li>
-            <li><a href="/edit/?town_id=3">Santa María Xadani</a></li>
-          </ul>
+    <nav class="navbar has-shadow is-fluid">
+      <div class="navbar-item">
+          <span class="icon">
+            <i class="fa fa-map"></i>
+          </span>
         </div>
-        <div id="map-content">
-          <h1 id="title"></h1>
-          <div id="controls">
-            <button id="prev" class="btn">Prev</button>
-            <button id="next" class="btn">Next</button>
-          </div>
-          <div id="images">
-          </div>
+      <div class="navbar-brand">
+        <div class="navbar-burger burger">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
       </div>
+            <div class="navbar-menu">
+        <div class="navbar-start">
+          <p id="title" class="title"></p>
+        </div>
+        <div class="navbar-end">
+            <div class="navbar-item">
+              <a href="/">Home</a>
+            </div>
+            <div class="navbar-item">
+              <a href="/tag/">Tag</a>
+            </div>
+            <div class="navbar-item">
+              <a href="/edit/">Edit</a>
+            </div>
+            <div class="navbar-item">
+              <a href="/predicted/">Predict</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container columns has-margin is-fluid  push">
+    <aside class="column is-2 aside menu is-fullheight">
+        <p class="menu-label">
+          Towns
+        </p>
+        <ul class="menu-list">
+          <li><a href="/edit/?town_id=1">Unión Hidalgo</a></li>
+          <li><a href="/edit/?town_id=2">Juchitán de Zaragoza</a></li>
+          <li><a href="/edit/?town_id=3">Santa María Xadani</a></li>
+        </ul>
+    </aside>
+    <section class="column content is-fullheight">
+      <div id="images" class="columns is-multiline">
+      </div>
+    </section>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
     <script src="https://openlayers.org/en/v4.3.4/build/ol.js"></script>
     <script src="/javascript/util.js" type="text/javascript"></script>
     <script src="/javascript/edit.js" type="text/javascript"></script>

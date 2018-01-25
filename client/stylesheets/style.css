@@ -1,44 +1,11 @@
-#wrapper {
-
+.push {
+  margin-top: 3em !important;
+  margin-right: 1em !important;
 }
-.navbar{
-  width:100%;
-  background: gray;
-
+.map {
+    margin:0 2em;
+    height:700px;
 }
-ul{
-  list-style-type: none;
-}
-.navbar li{
-  display: inline;
-}
-
-.navbar a{
-  color: white;
-  font-size: 20px;
-  margin:5px;
-}
-
-.container {
-  width:100%;
-}
-
-#panel {
-  width:20%;
-  float:left;
-}
-
-#map-content {
-  width:80%;
-  float:right;
-}
-
-#map {
-    width: 100%;
-    height: 80%;
-}
-
-
 .ol-popup:after, .ol-popup:before {
   top: 100%;
   border: solid transparent;
@@ -69,7 +36,6 @@ ul{
 .ol-popup-closer:after {
   content: "✖";
 }
-
 .ol-popup {
   position: absolute;
   background-color: white;
@@ -83,65 +49,12 @@ ul{
   width: 256px;
 }
 
-#images {
-  background-color: rgb(155,255,155);
-}
-
-.thumbnail {
-    width: 200px;
-    height: 200px;
-    padding:0px;
-    border: 0px;
-}
-
 .no-damage {
-  background-color: rgb(155,155,255);
-}
-.damage {
-  background-color: rgb(255,155,155);
-}
-.neutral {
-  background-color: rgb(155,155,155);
-}
-.card {
-  float:left;
-  width: 250px;
-  height: 300px;
-  padding: 25px;
-}
-.controls {
-  display: inline;
-}
-.edit-button {
-  width: 98px;
-  margin:1px;
+  background-color: hsl(348, 100%, 61%);
 }
 
-.submit-button {
-  width: 110px;
-  margin:1px;
-}
-
-
-.card-info {
-  float:left;
-  width: 250px;
-  height: 550px;
-  color: white;
-} 
-
-
-.card-data {
-  height: 300px;
-  
-}
-.card-data h1 {
-  font-size: 80px;
-}
-
-.card-label {
-  background-color: blue;
-  height: 50px;
+.damaged {
+  background-color: hsl(141, 71%, 48%);
 }
 
 

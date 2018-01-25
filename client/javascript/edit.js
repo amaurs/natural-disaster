@@ -15,16 +15,35 @@ function loadNewImage() {
         var url = IMAGES_URL + "/thumb/" + global.currentData['results'][i]['name'];
         var label = global.currentData['results'][i]['label'].name;
         var pk = global.currentData['results'][i]['pk'];
-        var $div = $("<div class='card " + (label=="Ausente"?"no-damage":"damage") +"'></div> ");
-        var $image = $("<img class='thumbnail' src='" + url + "'>");
-        var $controls = $("<div class='controls'></div")
-        var $delete = $("<button class='btn edit-button'>Delete</button>");
-        var $update = $("<button class='btn edit-button'>Update</button>");
+        var $div = $("<div class='column is-one-fourth'></div> ");
+        var $cardImage = $("<div class='card-image'></div> ");
+        var $image = $("<figure class='image is-marginless'><img src='" + url + "'></figure>");
+        var $controls = $("<div class='card-content'></div");
+
+        var $media = $("<div class='media'></div");
+        var $mediaLeft = $("<figure class='media-left'><p class='image is-32x32 " + (label!="Ausente"?"no-damage":"damaged") + "'></p></figure>");
+
+        var $mediaContent = $("<div class='media-content'></div");
+        var $delete = $("<button class='button is-small is-fullwidth'>Delete</button>");
+        var $update = $("<button class='button is-small is-fullwidth'>Update</button>");
+        
+
+
+
         $delete.click(deleteFactory(pk));
         $update.click(updateFactory(pk));
-        $div.append($image);
-        $controls.append($delete);
-        $controls.append($update);
+        $cardImage.append($image);
+        $div.append($cardImage);
+        
+
+        $mediaContent.append($delete);
+        $mediaContent.append($update);
+
+        $media.append($mediaLeft);
+        $media.append($mediaContent);
+
+        $controls.append($media);
+
         $div.append($controls);
         $("#images").append($div);
     }
@@ -33,8 +52,6 @@ function loadNewImage() {
 function paintSamplesFactory(load) {
     return function paintSamples(result) {
         global.currentData = result;
-        
-        //Needs to be checked, this is clearly a hack.
         if(load) { 
             global.index = 0;
             loadNewImage();
@@ -45,17 +62,17 @@ function paintSamplesFactory(load) {
 function makeAjaxCall(urlCall, load) {
     $.ajax({
         type: 'GET',
-        url: urlCall, 
+        url: urlCall,
         success: paintSamplesFactory(load),
         beforeSend : function(req) {
-            req.setRequestHeader('Authorization',  'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
+            req.setRequestHeader('Authorization', 'Token b2258391a854407d8e623c3a59ed4a95ef4ae9dd');
         },
     });
 }
 
 $(document).ready(function(){
     var data;
-    $("#title").text("Edit " + getTownName());
+    $("#title").text(getTownName());
     var urlCall = SERVER_URL + "/samples/list/" + getTownId() + "/?limit=10000";
     global.currentUrl = urlCall;
     retrieveData(urlCall, "GET", paintSamplesFactory(true));

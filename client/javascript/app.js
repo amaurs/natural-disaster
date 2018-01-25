@@ -191,7 +191,7 @@ function submit() {
         var extent = polygonFeature.getGeometry().getExtent();
         console.log(extent);
         var coordinate = [extent[2], extent[3]]; 
-        var controls = "<div class='controls'><button class='btn submit-button damage' id='damage-submit'>Damaged</button><button class='btn submit-button no-damage' id='no-damage-submit'>Not Damaged</button></div";
+        var controls = "<div class='controls'><button class='button is-fullwidth damaged' id='damage-submit'>Damaged</button><button class='button no-damage is-fullwidth' id='no-damage-submit'>Not Damaged</button></div";
         content.innerHTML = controls;
         overlay.setPosition(coordinate);
         var x = Math.round(extent[0]);
@@ -230,7 +230,7 @@ $(document).keydown(function(e) {
 
 $(document).ready(function(){
     var data;
-    $("#title").text("Tag " + getTownName());
+    $("#title").text(getTownName());
     makeAjaxCall(SERVER_URL + "/images/" + getTownId() + "/", true);
     $("#next").click(next);
     $("#prev").click(previous);

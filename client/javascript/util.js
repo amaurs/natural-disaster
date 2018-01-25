@@ -25,12 +25,20 @@ function getTownName() {
     return names[getTownId()];
 }
 
+function getTownIdFromName(name) {
+    var names = {
+        "Unión Hidalgo":1,
+        "Juchitán de Zaragoza":2,
+        "Santa María Xadani":3}
+    return names[name];
+}
+
 function townStyle(town) {
     var style = new ol.style.Style({
         image: new ol.style.Circle({
             radius: 3,
             fill: new ol.style.Fill({
-                color: town==3?'blue':(town==1?'red':'green')
+                color: town==3?'#e66101':(town==1?'#fdb863':'#5e3c99')
             })
         })
     });
