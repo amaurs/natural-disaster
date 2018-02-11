@@ -31,9 +31,10 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('pk','name','url','lat','lon','town_id')
         
 class DebrisSerializer(serializers.HyperlinkedModelSerializer):
+    town = TownSerializer()
     class Meta:
         model = Debris
-        fields = ('lat','lon','address')
+        fields = ('lat','lon','address','town')
         
 class SampleSerializer(serializers.HyperlinkedModelSerializer):
 

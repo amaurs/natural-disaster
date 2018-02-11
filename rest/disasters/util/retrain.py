@@ -18,10 +18,13 @@ from tensorflow.contrib.slim.python.slim.nets.resnet_v1 import bottleneck
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
 
-from rest.disasters.models import Label, Sample, get_samples_by_town_and_label
+from rest.disasters.models import Label, Sample, get_samples_by_town_and_label, \
+    get_cross_by_town_and_label
 from rest.disasters.util import make_dir
 from six.moves import urllib
 
+
+label_dict = {'damage':'Presente','nodamage':'Ausente'}
 
 def get_query_group(label_name):
     present = Label.objects.all().get(name='Presente')
@@ -47,12 +50,8 @@ def create_image_list_cross_town(training_towns, test_towns, label_name, validat
     training_images = []
     testing_images = []
     validation_images = []
-    
     query_size_by_town = int(query_size / 4)
-    
     label_id = Label.objects.get(name=label_name)
-    
-    
     for test_town in test_towns:
         for town in Sample.objects.filter(town_id=test_town, label=label_id):
             testing_images.append(town.name)
@@ -78,13 +77,25 @@ def create_image_list_cross_town(training_towns, test_towns, label_name, validat
             'validation_size': len(validation_images)
             }
 
+
+def create_image_dict_from_database_by_town(label_names, town_a, town_b, town_c, size):
+    
+    result = {}
+    for label in label_names:
+        result[label] = create_image_list_from_database_by_town(label, town_a, town_b, town_c, size)
+    return result
+
+def create_image_list_from_database_by_town(label_name, town_a, town_b, town_c, size):
+    return {
+            'dir':label_name,
+            'training': get_cross_by_town_and_label(town_a, label_dict[label_name], size),
+            'testing': get_cross_by_town_and_label(town_b, label_dict[label_name], size),
+            'validation': get_cross_by_town_and_label(town_c, label_dict[label_name], size)
+            }
+
 def create_image_list_from_database(label_name, testing_percentage, validation_percentage, max_num_images_per_class=134217727):
     
-    
-    
     images = get_samples_by_town_and_label(label_name)
-        
-        
     training_images = []
     testing_images = []
     validation_images = []
@@ -116,6 +127,7 @@ def create_image_lists_from_database(label_names, testing_percentage, validation
     for label in label_names:
         result[label] = create_image_list_from_database(get_query_label(label), testing_percentage, validation_percentage) 
 
+    
     return result
 
 

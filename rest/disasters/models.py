@@ -93,7 +93,7 @@ def get_samples_by_town_and_label(label):
     label_obj = Label.objects.get(name=label)
     return [row.name for row in Sample.objects.filter(label=label_obj)]
 
-def get_cross_by_town_and_label(town, label):
+def get_cross_by_town_and_label(town, label, size):
     with connection.cursor() as cursor:
         cursor.execute('SELECT s.name FROM disasters_sample AS s, \
                                            disasters_image AS i, \
@@ -103,10 +103,12 @@ def get_cross_by_town_and_label(town, label):
                                                        AND i.town_id=t.id \
                                                        AND s.label_id=l.id \
                                                        AND t.name=%s \
-                                                       AND l.name=%s', [town, label])
+                                                       AND l.name=%s LIMIT %s', [town, label, size])
         
         
+        print "This is the length of the query: ", cursor
         result = cursor.fetchall()
+        print "This is the length of the query: ", len(result)
     return [row[0] for row in result]
 
 def get_images_by_town_id(town):

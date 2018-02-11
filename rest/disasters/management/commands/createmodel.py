@@ -8,17 +8,16 @@ Created on Oct 11, 2017
 
 
 from datetime import datetime
+import itertools
 import json
 import random
 from shutil import copyfile
 import uuid
 
 from django.core.management.base import BaseCommand
-from matplotlib.pyplot import savefig
+
 import numpy
-from rasterio.rio.insp import plt
-from skimage.feature import hog
-from sklearn.metrics.ranking import roc_curve, auc
+
 import tensorflow
 from tensorflow.python.framework import graph_util
 from tensorflow.python.platform import gfile
@@ -32,7 +31,8 @@ from rest.disasters.util.retrain import create_image_lists_from_database, \
     maybe_download_and_extract, create_inception_graph, \
     cache_bottlenecks, add_final_training_ops, add_evaluation_step, \
     get_random_cached_bottlenecks, create_image_list_cross_town, \
-    create_image_lists_from_database_cross
+    create_image_lists_from_database_cross, \
+    create_image_dict_from_database_by_town
 from rest.settings import MODEL_FOLDER, TEMP_FOLDER, BOTTLENECK_FOLDER
 
 
@@ -42,24 +42,18 @@ COLOR_5 = '#b2abd2'
 COLOR_6 = '#5e3c99'
 
 def random_model(ground_truth):
-    
     total = 0
     for element in ground_truth:
-
         choice = random.randint(0,1)
-
-        
         if choice == numpy.argmin(element):
-            total = total + 1 
-    
+            total = total + 1
     print 1.0 * total / len(ground_truth)
 
 
 def hog_model(image_lists):
-    
     print image_lists
     
-def tensorflow_model(image_dir, image_lists):
+def tensorflow_model(image_dir, image_lists, perm, size):
     
     make_dir(TEMP_FOLDER)
     make_dir(BOTTLENECK_FOLDER)
@@ -67,12 +61,12 @@ def tensorflow_model(image_dir, image_lists):
     
     final_tensor_name = 'final_result'
     
-    how_many_training_steps = 1000
+    how_many_training_steps = 2000
     train_batch_size = 10
     summaries_dir = TEMP_FOLDER
     validation_batch_size = 10
     eval_step_interval = 20
-    test_batch_size = 200
+    test_batch_size = -1
     output_graph = 'damage_graph.pb'
     output_labels = 'damage_labels.txt'
     
@@ -165,29 +159,12 @@ def tensorflow_model(image_dir, image_lists):
     
     print y_test
     
+    with open('score-%s.txt' % size, 'a') as myfile:
+        for i in range(len(predictions)):
+            myfile.write('%s,%s\n' % (scores[:, 1][i], y_test[i]))
     
-    fpr, tpr, _ = roc_curve(y_test, scores[:, 1])
-    roc_auc = auc(fpr, tpr)
-        
-    plt.figure()
-    lw = 2
-    plt.plot(fpr, tpr, color=COLOR_4,
-                 lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)
     
-    for i in range(len(tpr)):
-        print "tpr: %s fpr: %s thres: %s" % (tpr[i],fpr[i],_[i])
-    #plt.annotate(_[40], (plt.annotate(_[20], (fpr[20],tpr[20])),tpr[40]))
-    #plt.annotate(_[35], (fpr[35],tpr[35]))
-    #plt.annotate(_[30], (fpr[30],tpr[30]))
     
-    plt.plot([0, 1], [0, 1], color=COLOR_6, lw=lw, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    #plt.title('Receiver operating characteristic example')
-    plt.legend(loc="lower right")
-    savefig('roc.png')
     
     
     
@@ -228,23 +205,29 @@ def tensorflow_model(image_dir, image_lists):
     session.close()
     return acc, new_path
 class Command(BaseCommand):
+    
+    def add_arguments(self, parser):
+        parser.add_argument('--perm', help='path to the new model')
+        parser.add_argument('--size', help='path to the new model')
 
 
     def handle(self, *args, **options):
         
+    
+        perm_num = int(options['perm'])
+        size = int(options['size'])
         
-        sizes = [20, 50, 100, 150, 200]
-        
-        means_acc = []
-        means_std_acc = []
-        hog_acc = []
-        
-        size = 200
+        print size
         
         image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'
+        towns = ['Unión Hidalgo','Juchitán de Zaragoza','Santa María Xadani']
         
-        image_lists = create_image_lists_from_database(['damage','nodamage'], testing_percentage=33, validation_percentage=22)
+        accuracies = {}
         
+        perms = list(itertools.permutations([0, 1, 2]))
+        perm = perms[perm_num]
+            
+        image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[1]], towns[perm[2]], size)
         print "testing %s" % len(image_lists['damage']['testing'])
         print "validation %s" % len(image_lists['damage']['validation'])
         print "training %s" % len(image_lists['damage']['training'])
@@ -252,15 +235,13 @@ class Command(BaseCommand):
         print "validation %s" % len(image_lists['nodamage']['validation'])
         print "training %s" % len(image_lists['nodamage']['training'])
         
-
-        
-        train_towns = [2,3]
-        test_towns = [1]
-        
-        
-        
-        accuracy, model_path = tensorflow_model(image_dir, image_lists)
-        
+        accuracy, model_path = tensorflow_model(image_dir, image_lists, perm_num, size)
+            
+        accuracies['%s, %s, %s' % (towns[perm[0]], towns[perm[1]], towns[perm[2]])] = accuracy
+            
+            
+        with open('validation-%s.txt' % (size), 'a') as myfile:
+            myfile.write('%s, %s, %s, %s: %s\n' % (towns[perm[0]], towns[perm[1]], towns[perm[2]], size, accuracy))
         
         '''
         model = TensorModel(model_path)
