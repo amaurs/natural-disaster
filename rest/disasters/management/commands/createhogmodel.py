@@ -5,7 +5,11 @@ Created on Oct 16, 2017
 
 @author: agutierrez
 '''
+import itertools
+import json
+
 from django.core.management.base import BaseCommand
+from matplotlib.pyplot import savefig
 import numpy
 import pandas
 from skimage import data, io, color
@@ -14,9 +18,11 @@ from sklearn import svm
 from sklearn.ensemble.forest import RandomForestClassifier
 from sklearn.metrics.classification import accuracy_score
 
+import matplotlib.pyplot as plt
 from rest.disasters.models import get_samples_by_town_and_label
 from rest.disasters.util.retrain import create_image_lists_from_database, \
-    create_image_lists_from_database_cross
+    create_image_lists_from_database_cross, \
+    create_image_dict_from_database_by_town
 from rest.settings import IMAGE_FOLDER, THUMB_FOLDER
 
 
@@ -59,6 +65,8 @@ def get_X_y(image_dir, image_lists, labels, method='hog'):
     feature_array = []
     target_array = []
     
+    
+    
     for tag in image_lists.keys():
         for label in labels:
             for image in image_lists[tag][label]:
@@ -77,63 +85,98 @@ def get_X_y(image_dir, image_lists, labels, method='hog'):
 def classic_model(image_dir, image_lists, method):
 
     X, y = get_X_y(image_dir, image_lists, ['training', 'validation'], method)
-    classifier = RandomForestClassifier(n_jobs=4, random_state=0)
+    classifier = RandomForestClassifier(n_estimators=1000, n_jobs=4)
     classifier.fit(X, y)
         
-    X_train, y_train = get_X_y(image_dir, image_lists, ['testing'], method)
-    predictions = classifier.predict(X_train)
-    confusion = pandas.crosstab(y_train, predictions, rownames=['Actual Class'], colnames=['Predicted Class'])
-        
-    return accuracy_score(y_train, predictions)
+    X_test, y_test = get_X_y(image_dir, image_lists, ['testing'], method)
+    predictions = classifier.predict(X_test)
+    confusion = pandas.crosstab(y_test, predictions, rownames=['Actual Class'], colnames=['Predicted Class'])
+    print confusion
+    return accuracy_score(y_test, predictions)
 
 class Command(BaseCommand):
+    
+
     def handle(self, *args, **options):
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from itertools import cycle
-
-        from sklearn import svm, datasets
-        from sklearn.metrics import roc_curve, auc
-        from sklearn.model_selection import train_test_split
-        from sklearn.preprocessing import label_binarize
-        from sklearn.multiclass import OneVsRestClassifier
-        from scipy import interp
-
-        # Import some data to play with
-        iris = datasets.load_iris()
-        X = iris.data
-        y = iris.target
-
-        # Binarize the output
-        y = label_binarize(y, classes=[0, 1, 2])
-        n_classes = y.shape[1]
-
-        # Add noisy features to make the problem harder    
-        random_state = np.random.RandomState(0)
-        n_samples, n_features = X.shape
-        X = np.c_[X, random_state.randn(n_samples, 200 * n_features)]
-
-        # shuffle and split training and test sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.5,
-                                                    random_state=0)
-
-        # Learn to predict each class against the other
-        classifier = OneVsRestClassifier(svm.SVC(kernel='linear', probability=True,
-                                 random_state=random_state))
-        y_score = classifier.fit(X_train, y_train).decision_function(X_test)
-
-        print y_test[:, 0]
-        print y_score[:, 0]
         
-        # Compute ROC curve and ROC area for each class
-        fpr = dict()
-        tpr = dict()
-        roc_auc = dict()
-        for i in range(n_classes):
-            fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
-            roc_auc[i] = auc(fpr[i], tpr[i])
 
-        # Compute micro-average ROC curve and ROC area
-        fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
-        roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+        image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'
+        towns = ['Unión Hidalgo','Juchitán de Zaragoza','Santa María Xadani']
+        
+        accuracies = {}
+        
+        perms = list(itertools.permutations([0, 1, 2]))
+       
+        
+        # 0 Unión Hidalgo        Juchitán de Zaragoza Santa María Xadani 
+        # 1 Unión Hidalgo        Santa María Xadani   Juchitán de Zaragoza
+        # 2 Juchitán de Zaragoza Unión Hidalgo        Santa María Xadani *
+        # 3 Juchitán de Zaragoza Santa María Xadani   Unión Hidalgo *
+        # 4 Santa María Xadani   Unión Hidalgo        Juchitán de Zaragoza  
+        # 5 Santa María Xadani   Juchitán de Zaragoza Unión Hidalgo *
+        
+        sizes = [10, 25, 50, 100]
+        perm_nums = [2, 3, 5]
+        models = ['hog', 'meanstd', 'means']
+        
+        final_data = {}
+        
+        labels = {2:'JS-U',3:'JU-S',5:'SU-J'}
+        colors = {2:'#d53e4f',3:'#99d594',5:'#3288bd'}
+        
+        for model in models:
+            print '*************************************************'
+            print model
+            model_data = {}
+            for perm_num in perm_nums:
+                perm = perms[perm_num]
+                print 'Test town: %s' % towns[perm[1]]
+                x = []
+                y = []
+                town_data = {}
+                for size in sizes:
+                    image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[1]], towns[perm[2]], size)
+                    
+                    print "testing %s" % len(image_lists['damage']['testing'])
+                    print "validation %s" % len(image_lists['damage']['validation'])
+                    print "training %s" % len(image_lists['damage']['training'])
+                    print "testing %s" % len(image_lists['nodamage']['testing'])
+                    print "validation %s" % len(image_lists['nodamage']['validation'])
+                    print "training %s" % len(image_lists['nodamage']['training'])
+                    accuracy = classic_model(image_dir, image_lists, method=model)
+                    
+                    x.append(size * 4)
+                    y.append(accuracy)
+                    
+                    #print 'Size: %s Accuracy: %s'
+        
+                town_data['x'] = x
+                town_data['y'] = y
+        
+                model_data[labels[perm_num]] = town_data
+            final_data[model] = model_data
+            
+        with open('classic-data.txt', 'w') as outfile:
+            json.dump(final_data, outfile)
+        for model in models:
+            model_data = final_data[model]
+            for perm_num in perm_nums:
+                town_data = model_data[labels[perm_num]]
+    
+                plt.plot(town_data['x'], town_data['y'], 'o-', c=colors[perm_num], alpha=1, label=labels[perm_num])
+
+                plt.xlabel('Training Set Size')
+                plt.ylabel('Accuracy')
+        
+        
+            plt.legend(loc="lower right",title="Permutation", shadow=False)
+            savefig('classic-%s.png' % model)
+            plt.clf() 
+
+    
+        
+        
+        
+
         

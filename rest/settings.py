@@ -188,11 +188,11 @@ LOGGING = { 'version': 1,
            'loggers': {
                'django': {
                    'handlers': ['console'],
-                   'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+                   'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
                    },
                 'rest.disasters': {
                     'handlers': ['console'],
-                    'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+                    'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
                     'formatter': 'simple',
                     },
             }

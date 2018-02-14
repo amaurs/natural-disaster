@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from random import shuffle
+
 from django.db import models, connection
 
 
@@ -103,13 +105,11 @@ def get_cross_by_town_and_label(town, label, size):
                                                        AND i.town_id=t.id \
                                                        AND s.label_id=l.id \
                                                        AND t.name=%s \
-                                                       AND l.name=%s LIMIT %s', [town, label, size])
+                                                       AND l.name=%s ', [town, label])
         
-        
-        print "This is the length of the query: ", cursor
         result = cursor.fetchall()
-        print "This is the length of the query: ", len(result)
-    return [row[0] for row in result]
+        shuffle(result)
+    return [row[0] for row in result[:size]]
 
 def get_images_by_town_id(town):
     

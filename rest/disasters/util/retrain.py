@@ -89,7 +89,7 @@ def create_image_list_from_database_by_town(label_name, town_a, town_b, town_c, 
     return {
             'dir':label_name,
             'training': get_cross_by_town_and_label(town_a, label_dict[label_name], size),
-            'testing': get_cross_by_town_and_label(town_b, label_dict[label_name], size),
+            'testing': get_cross_by_town_and_label(town_b, label_dict[label_name], 100),
             'validation': get_cross_by_town_and_label(town_c, label_dict[label_name], size)
             }
 

@@ -12,7 +12,8 @@ import matplotlib
 from matplotlib.pyplot import savefig
 from numpy import shape
 import numpy
-from skimage import io
+from skimage import io, color
+from skimage.feature._hog import hog
 from sklearn.manifold import TSNE
 
 import matplotlib.pyplot as plt
@@ -28,6 +29,16 @@ def extract_mean_std_feature_vector(image_path):
     std_array = numpy.std(image_array, axis=(0, 1))
     return numpy.concatenate((mean_array, std_array), axis=0)
 
+def extract_hog_feature_vector(image_path):
+    image_array = io.imread(image_path)[0]
+    
+    image = color.rgb2gray(image_array)
+    feature_array = hog(image, orientations=8, pixels_per_cell=(16, 16),
+                    cells_per_block=(1, 1))
+    del image_array
+    return feature_array
+
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         
@@ -35,7 +46,7 @@ class Command(BaseCommand):
         #image_path = '%s/%s' % (IMAGE_FOLDER, '25460d51-6b6e-4417-a728-615be7d3da0b.jpg')
         #print extract_mean_std_feature_vector(image_path)
         
-        colors = {1:COLOR_3,2:COLOR_6,3:COLOR_4}
+        colors = {1:'#d53e4f',2:'#99d594',3:'#3288bd'}
         labels = {1:'Union Hidalgo', 2:'Juchitan de Zaragoza', 3:'Santa Maria Xadani'}
         towns_x = {1:[], 2:[], 3:[]}
         towns_y = {1:[], 2:[], 3:[]}
@@ -45,7 +56,9 @@ class Command(BaseCommand):
         for town in range(1,4):
             for image in get_images_by_town_id(town):
                 image_path = '%s/%s' % (IMAGE_FOLDER, image)
-                feature_array.append(extract_mean_std_feature_vector(image_path))
+                
+                print image_path
+                feature_array.append(extract_hog_feature_vector(image_path))
                 towns.append(town)
                 cont = cont + 1
                 print cont 

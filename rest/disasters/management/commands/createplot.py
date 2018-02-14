@@ -36,12 +36,12 @@ class Command(BaseCommand):
         print filepath
 
 
-        colors = {'UJS':'#d53e4f',
-                  'USJ':'#fc8d59',
-                  'JUS':'#fee08b',
-                  'JSU':'#e6f598',
-                  'SUJ':'#99d594',
-                  'SJU':'#3288bd'}
+        colors = {'U-J-S':'#d53e4f',
+                  'U-S-J':'#fc8d59',
+                  'J-U-S':'#fee08b',
+                  'J-S-U':'#e6f598',
+                  'S-U-J':'#99d594',
+                  'S-J-U':'#3288bd'}
         x = []
         y = []
         

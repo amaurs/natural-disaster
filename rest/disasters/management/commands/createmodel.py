@@ -61,7 +61,7 @@ def tensorflow_model(image_dir, image_lists, perm, size):
     
     final_tensor_name = 'final_result'
     
-    how_many_training_steps = 2000
+    how_many_training_steps = 1000
     train_batch_size = 10
     summaries_dir = TEMP_FOLDER
     validation_batch_size = 10
@@ -227,7 +227,7 @@ class Command(BaseCommand):
         perms = list(itertools.permutations([0, 1, 2]))
         perm = perms[perm_num]
             
-        image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[1]], towns[perm[2]], size)
+        image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[2]], towns[perm[1]], size)
         print "testing %s" % len(image_lists['damage']['testing'])
         print "validation %s" % len(image_lists['damage']['validation'])
         print "training %s" % len(image_lists['damage']['training'])
@@ -237,103 +237,11 @@ class Command(BaseCommand):
         
         accuracy, model_path = tensorflow_model(image_dir, image_lists, perm_num, size)
             
-        accuracies['%s, %s, %s' % (towns[perm[0]], towns[perm[1]], towns[perm[2]])] = accuracy
+        accuracies['%s, %s, %s' % (towns[perm[0]], towns[perm[2]], towns[perm[1]])] = accuracy
             
             
         with open('validation-%s.txt' % (size), 'a') as myfile:
-            myfile.write('%s, %s, %s, %s: %s\n' % (towns[perm[0]], towns[perm[1]], towns[perm[2]], size, accuracy))
-        
-        '''
-        model = TensorModel(model_path)
-        
-        y_score = []
-        y_test = []
-        
-        for tag in ['damage','nodamage']:
-            for image in image_lists[tag]['testing']:
-                image_path = '%s/%s' % (image_dir,image)
-                print image_path
-                y_score.append(model.predict_from_file(image_path))
-                if 'damage' == tag:
-                    y_test.append(1)
-                else:
-                    y_test.append(0)
-                    
-        fpr, tpr, _ = roc_curve(y_test, y_score)
-        roc_auc = auc(fpr, tpr)
-        
-        plt.figure()
-        lw = 2
-        plt.plot(fpr, tpr, color='darkorange',
-                 lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[2])
-        plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('Receiver operating characteristic example')
-        plt.legend(loc="lower right")
-        savefig('roc.png')
-                
-        '''
-        
-        
-            
-       
-            
-        #with open('accuracies-all.txt', 'a') as myfile:
-        #    myfile.write('%s\n' % tensorflow_model(image_dir, image_lists))
-        #    #tensorflow_acc.append(tensorflow_model(image_dir, image_lists)) 
-        
-        
-        
-        '''
-        for size in sizes:
-            print 'Size: %s' % size
-            image_lists = create_image_lists_from_database_cross(train_towns, test_towns, ['damage','nodamage'], 30, size)
-            
-            #image_lists = create_image_lists_from_database(['damage','nodamage'], testing_percentage=33, validation_percentage=22, size=size)
-            #image_lists_helper = create_image_lists_from_database_cross(train_towns, test_towns, ['damage','nodamage'], 30, size)
-          
-            #image_lists['damage']['testing'] = image_lists_helper['damage']['testing']
-            #image_lists['nodamage']['testing'] = image_lists_helper['nodamage']['testing']
-            print "testing %s" % len(image_lists['damage']['testing'])
-            print "validation %s" % len(image_lists['damage']['validation'])
-            print "training %s" % len(image_lists['damage']['training'])
-            print "testing %s" % len(image_lists['nodamage']['testing'])
-            print "validation %s" % len(image_lists['nodamage']['validation'])
-            print "training %s" % len(image_lists['nodamage']['training'])
-            
-            #tensorflow_acc.append(tensorflow_model(image_dir, image_lists)) 
-            means_acc.append(classic_model(image_dir, image_lists, 'means'))
-            means_std_acc.append(classic_model(image_dir, image_lists, 'meanstd'))
-            hog_acc.append(classic_model(image_dir, image_lists, 'hog'))
-            
-        #all
-        #tensorflow_acc = [0.845, 0.795,0.915,0.955,0.95]
-        #1,2,3
-        #tensorflow_acc =[0.825,0.845,0.78,0.73,0.79]
-        #1,3,2
-        #tensorflow_acc =[0.75,0.885,0.915,0.91,0.93]
-        #2,3,1
-        tensorflow_acc =[0.755,0.78,0.845,0.845,0.87]
-        
-        
-        plt.scatter(sizes, tensorflow_acc, c=COLOR_3, label='tensorflow')
-        plt.plot(sizes, tensorflow_acc, c=COLOR_3)
-        plt.scatter(sizes, means_acc, c=COLOR_4, label='means')
-        plt.plot(sizes, means_acc, c=COLOR_4)
-        plt.scatter(sizes, means_std_acc, c=COLOR_5, label='meanstd')
-        plt.plot(sizes, means_std_acc, c=COLOR_5)
-        plt.scatter(sizes, hog_acc, c=COLOR_6, label='hog')
-        plt.plot(sizes, hog_acc, c=COLOR_6)
-        plt.legend(bbox_to_anchor=(0,1.02,1,1.02), loc="lower left", shadow=True, mode='expand', ncol=4)
-        plt.ylabel('Accuracy')
-        plt.xlabel('Training Set Size')
-        savefig('accuracies-%s-%s.png' % (train_towns, test_towns))
-        #savefig('accuracies-all.png')
-        '''
-        
+            myfile.write('%s-%s-%s %s\n' % (towns[perm[0]][0], towns[perm[2]][0], towns[perm[1]][0], accuracy))
         
 
         
