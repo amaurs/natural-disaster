@@ -47,7 +47,8 @@ class Command(BaseCommand):
         #print extract_mean_std_feature_vector(image_path)
         
         colors = {1:'#d53e4f',2:'#99d594',3:'#3288bd'}
-        labels = {1:'Union Hidalgo', 2:'Juchitan de Zaragoza', 3:'Santa Maria Xadani'}
+        colors = {1:'#ffeda0',3:'#feb24c',2:'#f03b20'}
+        labels = {3:r'$Uni\acute{o}n$ $Hidalgo$', 2:r'$Juchit\acute{a}n$ $de$ $Zaragoza$', 1:r'$Santa$ $Mar\acute{i}a$ $Xadani$'}
         towns_x = {1:[], 2:[], 3:[]}
         towns_y = {1:[], 2:[], 3:[]}
         feature_array = []
@@ -58,7 +59,7 @@ class Command(BaseCommand):
                 image_path = '%s/%s' % (IMAGE_FOLDER, image)
                 
                 print image_path
-                feature_array.append(extract_hog_feature_vector(image_path))
+                feature_array.append(extract_mean_std_feature_vector(image_path))
                 towns.append(town)
                 cont = cont + 1
                 print cont 
@@ -71,8 +72,8 @@ class Command(BaseCommand):
         for i in range(len(result)):
             towns_x[towns[i]].append(result[i][0])
             towns_y[towns[i]].append(result[i][1])
-        plt.scatter(towns_x[1],towns_y[1], c=colors[1], alpha=0.3, label=labels[1])
         plt.scatter(towns_x[2],towns_y[2], c=colors[2], alpha=0.3, label=labels[2])
+        plt.scatter(towns_x[1],towns_y[1], c=colors[1], alpha=0.3, label=labels[1])
         plt.scatter(towns_x[3],towns_y[3], c=colors[3], alpha=0.3, label=labels[3])
     
         #plt.title('t-SNE embedding of the images')

@@ -227,7 +227,10 @@ class Command(BaseCommand):
         perms = list(itertools.permutations([0, 1, 2]))
         perm = perms[perm_num]
             
-        image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[2]], towns[perm[1]], size)
+        #image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[2]], towns[perm[1]], size)
+        
+        image_lists = create_image_lists_from_database(['damage','nodamage'], 1, 20)
+        
         print "testing %s" % len(image_lists['damage']['testing'])
         print "validation %s" % len(image_lists['damage']['validation'])
         print "training %s" % len(image_lists['damage']['training'])

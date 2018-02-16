@@ -102,12 +102,10 @@ class Command(BaseCommand):
 
 
         image_dir = '/Users/agutierrez/Documents/oaxaca/thumb'
-        towns = ['Unión Hidalgo','Juchitán de Zaragoza','Santa María Xadani']
-        
-        accuracies = {}
         
         perms = list(itertools.permutations([0, 1, 2]))
-       
+        
+
         
         # 0 Unión Hidalgo        Juchitán de Zaragoza Santa María Xadani 
         # 1 Unión Hidalgo        Santa María Xadani   Juchitán de Zaragoza
@@ -116,14 +114,23 @@ class Command(BaseCommand):
         # 4 Santa María Xadani   Unión Hidalgo        Juchitán de Zaragoza  
         # 5 Santa María Xadani   Juchitán de Zaragoza Unión Hidalgo *
         
+        towns = ['Unión Hidalgo','Juchitán de Zaragoza','Santa María Xadani']
+        
         sizes = [10, 25, 50, 100]
-        perm_nums = [2, 3, 5]
+        perm_nums = [2, 3, 4]
         models = ['hog', 'meanstd', 'means']
         
         final_data = {}
         
-        labels = {2:'JS-U',3:'JU-S',5:'SU-J'}
-        colors = {2:'#d53e4f',3:'#99d594',5:'#3288bd'}
+        labels = {3:'JS-U',2:'JU-S',4:'SU-J'}
+        
+        colors = {'U-J-S':'#d53e4f',
+                  'U-S-J':'#fc8d59',
+                  'J-U-S':'#fee08b',
+                  'J-S-U':'#e6f598',
+                  'S-U-J':'#99d594',
+                  'S-J-U':'#3288bd'}
+        colors = {2:'#ffeda0',3:'#feb24c',4:'#f03b20'}
         
         for model in models:
             print '*************************************************'
@@ -131,13 +138,15 @@ class Command(BaseCommand):
             model_data = {}
             for perm_num in perm_nums:
                 perm = perms[perm_num]
-                print 'Test town: %s' % towns[perm[1]]
                 x = []
                 y = []
                 town_data = {}
                 for size in sizes:
-                    image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[1]], towns[perm[2]], size)
+                    image_lists = create_image_dict_from_database_by_town(['damage','nodamage'], towns[perm[0]], towns[perm[2]], towns[perm[1]], size)
                     
+                    print "%s%s-%s" % (towns[perm[0]][0],towns[perm[1]][0], towns[perm[2]][0])
+                    print "%s" % labels[perm_num]
+                    print "Testing town ************* %s" % towns[perm[2]]
                     print "testing %s" % len(image_lists['damage']['testing'])
                     print "validation %s" % len(image_lists['damage']['validation'])
                     print "training %s" % len(image_lists['damage']['training'])

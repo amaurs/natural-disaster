@@ -68,7 +68,8 @@ class Command(BaseCommand):
         
         plt.xlabel('Training Set Size')
         plt.ylabel('Accuracy')
-    
+        
+        plt.title('Retrained Model')
         
         plt.legend(loc="lower right",title="Permutation", shadow=False)
         savefig('validation-plot.png')
