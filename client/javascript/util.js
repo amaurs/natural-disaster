@@ -1,6 +1,58 @@
 var SERVER_URL = "http://127.0.0.1:8000";
 var IMAGES_URL = "http://127.0.0.1:8081";
 
+var appId = 'oD5a07ufBWFGUSdPa4k0';
+var appCode = 'ASjZ3JbFVY7RPCHYbOB08A';
+
+var hereLayers = [
+  {
+    base: 'base',
+    type: 'maptile',
+    scheme: 'normal.day',
+    app_id: appId,
+    app_code: appCode
+  },
+  {
+    base: 'base',
+    type: 'maptile',
+    scheme: 'normal.day.transit',
+    app_id: appId,
+    app_code: appCode
+  },
+  {
+    base: 'base',
+    type: 'maptile',
+    scheme: 'pedestrian.day',
+    app_id: appId,
+    app_code: appCode
+  },
+  {
+    base: 'aerial',
+    type: 'maptile',
+    scheme: 'terrain.day',
+    app_id: appId,
+    app_code: appCode
+  },
+  {
+    base: 'aerial',
+    type: 'maptile',
+    scheme: 'satellite.day',
+    app_id: appId,
+    app_code: appCode
+  },
+  {
+    base: 'aerial',
+    type: 'maptile',
+    scheme: 'hybrid.day',
+    app_id: appId,
+    app_code: appCode
+  }
+];
+var urlTpl = 'https://{1-4}.{base}.maps.cit.api.here.com' +
+  '/{type}/2.1/maptile/newest/{scheme}/{z}/{x}/{y}/256/png' +
+  '?app_id={app_id}&app_code={app_code}';
+
+
 function getParam(param){
     return new URLSearchParams(window.location.search).get(param);
 }
@@ -15,6 +67,16 @@ function getTownId() {
         townId = 1;
     }
     return townId;
+}
+
+function createUrl(tpl, layerDesc) {
+  console.log(tpl);
+  return tpl
+      .replace('{base}', layerDesc.base)
+      .replace('{type}', layerDesc.type)
+      .replace('{scheme}', layerDesc.scheme)
+      .replace('{app_id}', layerDesc.app_id)
+      .replace('{app_code}', layerDesc.app_code);
 }
 
 function getTownName() {
@@ -36,9 +98,11 @@ function getTownIdFromName(name) {
 function townStyle(town) {
     var style = new ol.style.Style({
         image: new ol.style.Circle({
-            radius: 3,
+            radius: 6,
             fill: new ol.style.Fill({
-                color: town==3?'#e66101':(town==1?'#fdb863':'#5e3c99')
+                color: town==3?'#ffeda0':
+                       town==1?'#feb24c':
+                               '#f03b20'
             })
         })
     });

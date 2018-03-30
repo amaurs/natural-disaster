@@ -37,7 +37,6 @@ function paintDebris(result) {
                 address: element['address'],
                 geometry: point
         });
-        console.log(element.town['name']);
         if(element.town['name'] == town){
             coords.push([element['lon'], element['lat']]);
         }
@@ -63,11 +62,15 @@ $(document).ready(function(){
         target: document.getElementById('map'),
         view: getView(),
         layers: [
-            new ol.layer.Tile({
-            source: new ol.source.OSM()
-            }),
-            vectorLayer
-        ]
+                new ol.layer.Tile({ 
+                   source: new ol.source.XYZ({
+                        url: createUrl(urlTpl, hereLayers[4]),
+                        attributions: 'Map Tiles &copy; ' + new Date().getFullYear() + ' ' +
+                                '<a href="http://developer.here.com">HERE</a>'
+                    })
+               }),
+                vectorLayer
+                ]
     });
     select = new ol.interaction.Select({
       layers: [vectorLayer]

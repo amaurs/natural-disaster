@@ -64,7 +64,8 @@ class Command(BaseCommand):
             print x
             print town['y']
             plt.plot(x,town['y'], 'o-', c=colors[town['town']], alpha=1, label=town['town'])
-    
+            
+        plt.ylim((0.45,0.95))
         
         plt.xlabel('Training Set Size')
         plt.ylabel('Accuracy')

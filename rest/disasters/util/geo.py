@@ -4,7 +4,9 @@ Created on Oct 20, 2017
 @author: agutierrez
 '''
 import json
+import random
 import sys
+import time
 import urllib2
 
 import cv2
@@ -24,8 +26,7 @@ from rest.disasters.util.predict import TensorModel
 from rest.settings import TEMP_FOLDER
 
 
-OVERLAP_THRESHOLD = 0.1
-DECISION_THRESHOLD = 0.699293
+OVERLAP_THRESHOLD = 0.0005
 LABEL_LINES = ['nodamage','damage']
 
 def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
@@ -46,7 +47,7 @@ def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
         projection = src.crs.to_dict()['init']
         geotransform = src.transform
 
-    no_overlap_boxes, scores = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299, model_path, threshold)
+    boxes, no_overlap_boxes, scores = apply_prediction_random_on_array(r, g, b, scene_height, scene_width, 322, 322, model_path, threshold)
     original = Proj(init=projection)    
     target = Proj(init='epsg:4326')
     world_boxes = {'latlon':[],'world':[],'score':[], 'address':[]}
@@ -67,7 +68,7 @@ def apply_prediction_on_raster(filepath, town_id, model_path, threshold):
     list_to_database(world_boxes, town_id, model_path, threshold)
 
     
-def apply_prediction_on_image(filepath):
+def apply_prediction_on_image(filepath, contrast, model_path, threshold):
     '''
     This method opens an image from a jpg file using the skimage package.
     '''
@@ -79,40 +80,58 @@ def apply_prediction_on_image(filepath):
     scene_height = image_array.shape[0]
     scene_width = image_array.shape[1]
     
+    boxes, no_overlap_boxes, scores = apply_prediction_random_on_array(r, g, b, scene_height, scene_width, 322, 322, model_path, threshold)
     
+    del image_array
     
-    no_overlap_boxes, scores = apply_prediction_on_array(r, g, b, scene_height, scene_width, 299, 299)
+    image_array = imread(contrast)
     
+    print image_array.shape
     
     cv2_image_array = numpy.zeros(image_array.shape)
+    cv2_other_image_array = numpy.zeros(image_array.shape)
     
     cv2_image_array[..., 0] = image_array[..., 2]
     cv2_image_array[..., 1] = image_array[..., 1]
     cv2_image_array[..., 2] = image_array[..., 0]
     
+    cv2_other_image_array[..., 0] = image_array[..., 2]
+    cv2_other_image_array[..., 1] = image_array[..., 1]
+    cv2_other_image_array[..., 2] = image_array[..., 0]
+    
     del image_array
     
+    
+    
     for box in no_overlap_boxes:
-        cv2.rectangle(cv2_image_array,(box[0],box[1]),(box[2],box[3]),(0,255,0),3)
+        cv2.rectangle(cv2_image_array,(box[0],box[1]),(box[2],box[3]),(0,255,0),4)
+    for box in boxes:
+        cv2.rectangle(cv2_other_image_array,(box[0],box[1]),(box[2],box[3]),(0,0,255),4)
     image_path = '%s/%s.jpg' % (TEMP_FOLDER, get_basename(filepath))
+    print image_path
     cv2.imwrite(image_path, cv2_image_array)
+    
+    image_path = '%s/%s-boxes.jpg' % (TEMP_FOLDER, get_basename(filepath))
+    print image_path
+    cv2.imwrite(image_path, cv2_other_image_array)
         
     
 def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizontal_window, model_path, threshold):
     
-    horizontal_step = vertical_step = 219
+    horizontal_step = vertical_step = 50 + random.randint(0,100)
     total = len(range(0, height, vertical_step)) * len(range(0, width, horizontal_step))
     processed = 0
     tensor_model = get_tensor_model_by_path(model_path)
     boxes = []
     scores = []
     for y in range(0, height, vertical_step):
+        horizontal_step = 50 + random.randint(0,50)
         for x in range(0, width, horizontal_step):
             processed = processed + 1 
             if(x + horizontal_window < width and y + vertical_window < height):
                 size = horizontal_window
                 offset_x = x
-                offset_y = y
+                offset_y = y 
                 image_array = numpy.zeros((size,size,3), 'uint8')
                 image_array[..., 0] = r[offset_y:offset_y + vertical_window,offset_x:offset_x + horizontal_window]
                 image_array[..., 1] = g[offset_y:offset_y + vertical_window,offset_x:offset_x + horizontal_window]
@@ -134,8 +153,64 @@ def apply_prediction_on_array(r, g, b, height, width, vertical_window, horizonta
                     sys.stdout.write('\rProgress %.1f%%' % progress)
                     sys.stdout.flush()
     print 'About to calculate nom max suppression fast.'
+    random.shuffle(boxes)
     no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), OVERLAP_THRESHOLD)
-    return no_overlap_boxes, scores
+    
+    return boxes, no_overlap_boxes, scores
+
+def apply_prediction_random_on_array(r, g, b, height, width, vertical_window, horizontal_window, model_path, threshold):
+    
+    horizontal_step = vertical_step = 130
+    total = len(range(0, height, vertical_step)) * len(range(0, width, horizontal_step))
+    
+    print 'Total of windows to be explored: %s' % total
+    
+    processed = 0
+    tensor_model = get_tensor_model_by_path(model_path)
+    boxes = []
+    scores = []
+    
+    start_time = time.time()
+    
+    while processed < total:
+        x = random.randint(0, width)
+        y = random.randint(0, height)     
+        if(x + horizontal_window < width and y + vertical_window < height):
+                processed = processed + 1
+                size = horizontal_window
+                offset_x = x
+                offset_y = y 
+                image_array = numpy.zeros((size,size,3), 'uint8')
+                image_array[..., 0] = r[offset_y:offset_y + vertical_window,offset_x:offset_x + horizontal_window]
+                image_array[..., 1] = g[offset_y:offset_y + vertical_window,offset_x:offset_x + horizontal_window]
+                image_array[..., 2] = b[offset_y:offset_y + vertical_window,offset_x:offset_x + horizontal_window]
+                predictions = tensor_model.predict_from_array(image_array)
+                top_k = predictions[0].argsort()[-len(predictions[0]):][::-1]
+                result = {}
+                for node_id in top_k:
+                    human_string = LABEL_LINES[node_id]
+                    score = predictions[0][node_id]
+                    result[human_string] = score
+                    
+                if result[LABEL_LINES[1]] > threshold:
+                    scores.append(result[LABEL_LINES[1]])
+                    boxes.append(numpy.array([x,y,x + horizontal_window, y + vertical_window]))
+                
+                if (processed % 100) == 0:
+                    progress = (processed * 1.0 / total) * 100.0
+                    so_far = time.time() - start_time
+                    left = so_far / (processed * 1.0 / total)
+                    sys.stdout.write('\rProgress %.1f%%, windows %s, left %s minutes' % (progress,processed, left))
+                    sys.stdout.flush()
+                    
+                    
+                    
+    print 'About to calculate nom max suppression fast.'
+    random.shuffle(boxes)
+    no_overlap_boxes = non_max_suppression_fast(numpy.array(boxes), OVERLAP_THRESHOLD)
+    
+    return boxes, no_overlap_boxes, scores
+
 
 def get_tensor_model():
     models = Model.objects.all().order_by('-accuracy')
